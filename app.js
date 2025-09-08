@@ -131,9 +131,15 @@ async function saveEventToFirebase(eventId, eventData) {
                 }
             })
         });
-        console.log('Event saved to Firebase');
+        
+        if (response.ok) {
+            console.log('✅ Event saved to Firebase successfully');
+        } else {
+            const errorText = await response.text();
+            console.error('❌ Firebase save failed:', errorText);
+        }
     } catch (error) {
-        console.error('Firebase save failed:', error);
+        console.error('❌ Firebase save network error:', error);
     }
 }
 
