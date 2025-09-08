@@ -17,9 +17,12 @@ async function loadEventData() {
                 pin: firebaseData.fields.pin.stringValue,
                 participants: firebaseData.fields.participants?.arrayValue?.values?.map(v => JSON.parse(v.stringValue)) || []
             };
+            console.log('✅ Event loaded from Firebase:', eventData.title);
+        } else {
+            console.log('⚠️ Firebase response not ok:', response.status);
         }
     } catch (error) {
-        console.log('Firebase load failed, using localStorage');
+        console.log('⚠️ Firebase load failed, using localStorage:', error.message);
     }
     
     // Fallback to localStorage
