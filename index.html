@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Creator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="logo-main">
+        <div class="logo-text">
+            <div class="logo-line-1">Today's</div>
+            <div class="logo-line-2">Privilege</div>
+            <div class="logo-line-3">Spectrum</div>
+        </div>
+    </div>
+    <div class="narrow-container">
+        <div class="card">
+            <div id="createForm">
+                <h1>Create New Event</h1>
+                <form id="eventForm">
+                    <input type="text" id="eventTitle" placeholder="Event Title" required>
+                    <div class="form-bottom">
+                        <div class="review-link">
+                            <a href="#" id="reviewQuestions">Review the questions</a>
+                        </div>
+                        <button type="submit">Create Event</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div id="eventCreated" style="display: none;">
+                <h1>Event Created!</h1>
+                <div class="url-container">
+                    <input type="text" id="eventUrl" readonly>
+                    <button id="copyBtn" class="copy-icon">📋</button>
+                </div>
+                <div class="pin-container">
+                    <label>Participation PIN:</label>
+                    <input type="text" id="eventPin" readonly>
+                    <button id="copyPinBtn" class="copy-icon">📋</button>
+                </div>
+                <div class="action-buttons">
+                    <button id="goToEvent">Go to Event</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="banner-card" id="newEventBanner" style="display: none;">
+            <div class="banner-content">
+                <h3>Create Another Event</h3>
+                <p>Click here to start a new event</p>
+            </div>
+        </div>
+        
+        <div class="archive-section" id="archiveSection" style="display: none;">
+            <h3>Recent Events</h3>
+            <div id="eventArchive"></div>
+        </div>
+    </div>
+
+    <!-- Questions Review Modal -->
+    <div id="questionsModal" class="modal" style="display: none;">
+        <span class="close-outside" id="closeModal">&times;</span>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Review Questions</h2>
+            </div>
+            <div class="modal-body">
+                <div id="questionsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div>Made with love © 2025 <a href="https://jesusmartin.eu" target="_blank">jesusmartin.eu</a></div>
+            <div>Any feedback? reach out to <a href="mailto:hi@jesusmartin.eu">hi@jesusmartin.eu</a></div>
+        </div>
+    </footer>
+
+    <script src="questions.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
