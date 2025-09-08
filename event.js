@@ -38,6 +38,16 @@ function setupPinEntry() {
     // Display event title on PIN screen
     document.getElementById('eventTitlePin').textContent = eventData.title;
     
+    // Check if participant already exists for this event
+    const savedParticipant = localStorage.getItem(`participant_${eventId}`);
+    if (savedParticipant) {
+        participant = JSON.parse(savedParticipant);
+        document.getElementById('pinContainer').style.display = 'none';
+        document.getElementById('eventContent').style.display = 'block';
+        loadEvent();
+        return;
+    }
+    
     document.getElementById('submitPin').addEventListener('click', () => {
         const enteredPin = document.getElementById('pinInput').value.trim();
         if (enteredPin === eventData.pin.toString()) {
@@ -61,7 +71,12 @@ function setupPinEntry() {
 function loadEvent() {
     document.getElementById('eventTitle').textContent = eventData.title;
     
-    participant = generateParticipant();
+    // Use existing participant or generate new one
+    if (!participant) {
+        participant = generateParticipant();
+        localStorage.setItem(`participant_${eventId}`, JSON.stringify(participant));
+    }
+    
     document.getElementById('participantName').textContent = participant.name;
     document.getElementById('participantAvatar').textContent = participant.avatar;
     
@@ -142,6 +157,7 @@ async function updateParticipant() {
     
     // Save to both Firebase and localStorage
     localStorage.setItem(`event_${eventId}`, JSON.stringify(eventData));
+    localStorage.setItem(`participant_${eventId}`, JSON.stringify(participant));
     
     try {
         await fetch(`https://firestore.googleapis.com/v1/projects/privilegespectrum/databases/(default)/documents/events/${eventId}`, {
