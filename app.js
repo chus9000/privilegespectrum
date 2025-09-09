@@ -149,6 +149,7 @@ function addToArchive(event) {
     archive = archive.slice(0, 5);
     localStorage.setItem('eventArchive', JSON.stringify(archive));
     loadArchive();
+showCookieBanner();
 }
 
 function loadArchive() {
@@ -173,3 +174,16 @@ function loadArchive() {
         }).join('');
     }
 }
+
+// Cookie banner functions
+function showCookieBanner() {
+    const cookieConsent = localStorage.getItem('cookieConsent');
+    if (!cookieConsent) {
+        document.getElementById('cookieBanner').style.display = 'block';
+    }
+}
+
+document.getElementById('acceptCookies').addEventListener('click', () => {
+    localStorage.setItem('cookieConsent', 'accepted');
+    document.getElementById('cookieBanner').style.display = 'none';
+});
