@@ -1,7 +1,10 @@
 let currentEventUrl = '';
 let currentEventPin = '';
 
-document.addEventListener('DOMContentLoaded', loadArchive);
+document.addEventListener('DOMContentLoaded', () => {
+    loadArchive();
+    showCookieBanner();
+});
 
 document.getElementById('eventForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -149,7 +152,6 @@ function addToArchive(event) {
     archive = archive.slice(0, 5);
     localStorage.setItem('eventArchive', JSON.stringify(archive));
     loadArchive();
-showCookieBanner();
 }
 
 function loadArchive() {
