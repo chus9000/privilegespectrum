@@ -434,6 +434,10 @@ button:active {
     line-height: 1.6;
 }
 
+.results-page .footer-content{
+    color: #667eea;
+}
+
 .footer-content div:first-child {
     margin-bottom: 4px;
 }
@@ -461,6 +465,99 @@ button:active {
 .pin-input-container button {
     margin: 0;
     flex-shrink: 0;
+}
+
+.legal-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    backdrop-filter: blur(10px);
+}
+
+.legal-container h1 {
+    color: #1e293b;
+    margin-bottom: 20px;
+}
+
+.legal-container h2 {
+    color: #334155;
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+
+.legal-container p, .legal-container li {
+    color: #475569;
+    line-height: 1.6;
+}
+
+.legal-container ul {
+    margin-left: 20px;
+}
+
+.cookie-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(30, 41, 59, 0.95);
+    color: white;
+    padding: 20px;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.cookie-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.cookie-content p {
+    margin: 0;
+    flex: 1;
+}
+
+.cookie-buttons {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.cookie-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.cookie-btn:hover {
+    background: #5a67d8;
+}
+
+.cookie-link {
+    color: #cbd5e1;
+    text-decoration: underline;
+}
+
+.cookie-link:hover {
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .cookie-content {
+        flex-direction: column;
+        text-align: center;
+    }
 }
 
 .results-layout .footer {
