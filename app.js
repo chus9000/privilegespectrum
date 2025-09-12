@@ -120,15 +120,15 @@ function generatePin() {
 // Firebase functions
 async function saveEventToFirebase(eventId, eventData) {
     try {
-        await window.firebaseSetDoc(window.firebaseDoc(window.firebaseDB, 'events', eventId), {
-            title: eventData.title,
-            pin: eventData.pin,
-            participants: eventData.participants || [],
-            createdAt: new Date()
-        });
-        console.log('✅ Event saved to Firebase successfully');
+        const success = await window.FirebaseAPI.saveEvent(eventId, eventData);
+        if (success) {
+            console.log('✅ Event saved to Firebase successfully');
+        } else {
+            console.error('❌ Firebase save failed');
+            throw new Error('Firebase save failed');
+        }
     } catch (error) {
-        console.error('❌ Firebase save failed:', error);
+        console.error('❌ Firebase save error:', error);
         throw error;
     }
 }
