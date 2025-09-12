@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showCookieBanner();
 });
 
-document.getElementById('eventForm').addEventListener('submit', (e) => {
+document.getElementById('eventForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const title = document.getElementById('eventTitle').value;
@@ -15,7 +15,7 @@ document.getElementById('eventForm').addEventListener('submit', (e) => {
     const eventData = { title, pin: eventPin, participants: [] };
     
     // Save to Firebase and localStorage as backup
-    saveEventToFirebase(eventId, eventData);
+    await saveEventToFirebase(eventId, eventData);
     localStorage.setItem(`event_${eventId}`, JSON.stringify(eventData));
     
     // Add to archive
