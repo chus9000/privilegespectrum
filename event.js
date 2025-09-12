@@ -9,11 +9,8 @@ loadEventData();
 async function loadEventData() {
     // Try Firebase first
     try {
-        const docRef = window.firebaseDoc(window.firebaseDB, 'events', eventId);
-        const docSnap = await window.firebaseGetDoc(docRef);
-        
-        if (docSnap.exists()) {
-            eventData = docSnap.data();
+        eventData = await window.FirebaseAPI.loadEvent(eventId);
+        if (eventData) {
             console.log('✅ Event loaded from Firebase:', eventData.title);
         } else {
             console.log('⚠️ Event not found in Firebase');
@@ -164,11 +161,10 @@ async function updateParticipant() {
     localStorage.setItem(`participant_${eventId}`, JSON.stringify(participant));
     
     try {
-        const docRef = window.firebaseDoc(window.firebaseDB, 'events', eventId);
-        await window.firebaseUpdateDoc(docRef, {
-            participants: eventData.participants
-        });
-        console.log('✅ Participant updated in Firebase');
+        const success = await window.FirebaseAPI.saveEvent(eventId, eventData);
+        if (success) {
+            console.log('✅ Participant updated in Firebase');
+        }
     } catch (error) {
         console.error('❌ Firebase participant update failed:', error);
     }
