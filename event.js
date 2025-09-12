@@ -183,8 +183,6 @@ function initializeProgress() {
     }
 }
 
-}
-
 async function updateParticipant() {
     const existingIndex = eventData.participants.findIndex(p => p.name === participant.name);
     if (existingIndex >= 0) {
