@@ -1,11 +1,11 @@
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "your-api-key",
+  apiKey: "AIzaSyBoHjADjt_IILbbbr1PbHHvxZ4KKXYQc7Y",
   authDomain: "privilegespectrum.firebaseapp.com",
   projectId: "privilegespectrum",
-  storageBucket: "privilegespectrum.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "your-app-id"
+  storageBucket: "privilegespectrum.firebasestorage.app",
+  messagingSenderId: "39262599514",
+  appId: "1:39262599514:web:8ac4f733ed36e700319b63",
 };
 
 // Initialize Firebase
