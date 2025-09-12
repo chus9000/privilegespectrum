@@ -9,38 +9,29 @@ loadEventData();
 async function loadEventData() {
     // Try Firebase first
     try {
-        const response = await fetch(`https://firestore.googleapis.com/v1/projects/privilegespectrum/databases/(default)/documents/events/${eventId}`);
-        if (response.ok) {
-            const firebaseData = await response.json();
-            console.log('🔍 Firebase raw data:', firebaseData);
-            
-            if (firebaseData.fields) {
-                eventData = {
-                    title: firebaseData.fields.title?.stringValue || 'Unknown Event',
-                    pin: firebaseData.fields.pin?.stringValue || '000000',
-                    participants: firebaseData.fields.participants?.arrayValue?.values?.map(v => JSON.parse(v.stringValue)) || []
-                };
-                console.log('✅ Event loaded from Firebase:', eventData.title);
-            } else {
-                console.log('⚠️ Firebase data missing fields structure');
-            }
+        const docRef = window.firebaseDoc(window.firebaseDB, 'events', eventId);
+        const docSnap = await window.firebaseGetDoc(docRef);
+        
+        if (docSnap.exists()) {
+            eventData = docSnap.data();
+            console.log('✅ Event loaded from Firebase:', eventData.title);
         } else {
-            console.log('⚠️ Firebase response not ok:', response.status);
+            console.log('⚠️ Event not found in Firebase');
         }
     } catch (error) {
-        console.log('⚠️ Firebase load failed, using localStorage:', error.message);
+        console.log('⚠️ Firebase load failed:', error.message);
     }
     
     // Fallback to localStorage
     if (!eventData) {
-        eventData = JSON.parse(localStorage.getItem(`event_${eventId}`));
+        eventData = JSON.parse(localStorage.getItem(`event_${eventId}`) || 'null');
         if (eventData) {
             console.log('📁 Event loaded from localStorage:', eventData.title);
         }
     }
     
     if (!eventData) {
-        console.log('❌ Event not found in Firebase or localStorage for ID:', eventId);
+        console.log('❌ Event not found for ID:', eventId);
         document.body.innerHTML = '<div class="container"><div class="card"><h1>Event not found</h1><p>Event ID: ' + eventId + '</p></div></div>';
     } else {
         setupPinEntry();
@@ -173,21 +164,13 @@ async function updateParticipant() {
     localStorage.setItem(`participant_${eventId}`, JSON.stringify(participant));
     
     try {
-        await fetch(`https://firestore.googleapis.com/v1/projects/privilegespectrum/databases/(default)/documents/events/${eventId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                fields: {
-                    participants: {
-                        arrayValue: {
-                            values: eventData.participants.map(p => ({ stringValue: JSON.stringify(p) }))
-                        }
-                    }
-                }
-            })
+        const docRef = window.firebaseDoc(window.firebaseDB, 'events', eventId);
+        await window.firebaseUpdateDoc(docRef, {
+            participants: eventData.participants
         });
+        console.log('✅ Participant updated in Firebase');
     } catch (error) {
-        console.error('Firebase update failed:', error);
+        console.error('❌ Firebase participant update failed:', error);
     }
 }
 
