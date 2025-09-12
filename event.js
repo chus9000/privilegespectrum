@@ -76,6 +76,24 @@ function loadEvent() {
     if (!participant) {
         participant = generateParticipant();
         localStorage.setItem(`participant_${eventId}`, JSON.stringify(participant));
+        
+        // Add new participant to event data and save to Firebase
+        const existingIndex = eventData.participants.findIndex(p => p.name === participant.name);
+        if (existingIndex === -1) {
+            eventData.participants.push(participant);
+            updateParticipant();
+        }
+    }
+    
+    // Restore answers and update UI
+    if (participant.answers) {
+        Object.keys(participant.answers).forEach(questionIndex => {
+            const answer = participant.answers[questionIndex];
+            const selectedElement = document.getElementById(`q${questionIndex}_${answer === 1 ? 'yes' : 'no'}`);
+            if (selectedElement) {
+                selectedElement.classList.add('selected');
+            }
+        });
     }
     
     document.getElementById('participantName').textContent = participant.name;
@@ -110,6 +128,9 @@ function loadEvent() {
     document.getElementById('progressText').textContent = `0/${enabledCount} completed`;
     
     document.getElementById('resultsLink').href = `results.html?id=${eventId}`;
+    
+    // Initialize progress after loading questions
+    initializeProgress();
 }
 
 function selectAnswer(questionIndex, answer, element) {
@@ -129,8 +150,12 @@ function selectAnswer(questionIndex, answer, element) {
         }
     });
     
-    // Update progress
-    const answered = Object.keys(participant.answers).length;
+    updateProgress();
+    updateParticipant();
+}
+
+function updateProgress() {
+    const answered = Object.keys(participant.answers || {}).length;
     const disabledQuestions = JSON.parse(localStorage.getItem('disabledQuestions') || '[]');
     const total = questions.length - disabledQuestions.length;
     const percentage = (answered / total) * 100;
@@ -144,8 +169,15 @@ function selectAnswer(questionIndex, answer, element) {
         resultsLink.classList.remove('disabled');
         resultsLink.style.pointerEvents = 'auto';
     }
-    
-    updateParticipant();
+}
+
+function initializeProgress() {
+    // Initialize progress on page load
+    if (participant && participant.answers) {
+        updateProgress();
+    }
+}
+
 }
 
 async function updateParticipant() {
