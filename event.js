@@ -28,10 +28,14 @@ async function loadEventData() {
     // Fallback to localStorage
     if (!eventData) {
         eventData = JSON.parse(localStorage.getItem(`event_${eventId}`));
+        if (eventData) {
+            console.log('📁 Event loaded from localStorage:', eventData.title);
+        }
     }
     
     if (!eventData) {
-        document.body.innerHTML = '<div class="container"><div class="card"><h1>Event not found</h1></div></div>';
+        console.log('❌ Event not found in Firebase or localStorage for ID:', eventId);
+        document.body.innerHTML = '<div class="container"><div class="card"><h1>Event not found</h1><p>Event ID: ' + eventId + '</p></div></div>';
     } else {
         setupPinEntry();
     }
