@@ -90,17 +90,6 @@ function loadEvent() {
         }
     }
     
-    // Restore answers and update UI
-    if (participant.answers) {
-        Object.keys(participant.answers).forEach(questionIndex => {
-            const answer = participant.answers[questionIndex];
-            const selectedElement = document.getElementById(`q${questionIndex}_${answer === 1 ? 'yes' : 'no'}`);
-            if (selectedElement) {
-                selectedElement.classList.add('selected');
-            }
-        });
-    }
-    
     document.getElementById('participantName').textContent = participant.name;
     document.getElementById('participantAvatar').textContent = participant.avatar;
     
@@ -133,6 +122,9 @@ function loadEvent() {
     document.getElementById('progressText').textContent = `0/${enabledCount} completed`;
     
     document.getElementById('resultsLink').href = `results.html?id=${eventId}`;
+    
+    // Restore answers after questions are rendered
+    restoreAnswers();
     
     // Initialize progress after loading questions
     initializeProgress();
@@ -173,6 +165,19 @@ function updateProgress() {
     if (answered === total) {
         resultsLink.classList.remove('disabled');
         resultsLink.style.pointerEvents = 'auto';
+    }
+}
+
+function restoreAnswers() {
+    // Restore answers and update UI after questions are rendered
+    if (participant && participant.answers) {
+        Object.keys(participant.answers).forEach(questionIndex => {
+            const answer = participant.answers[questionIndex];
+            const selectedElement = document.getElementById(`q${questionIndex}_${answer === 1 ? 'yes' : 'no'}`);
+            if (selectedElement) {
+                selectedElement.classList.add('selected');
+            }
+        });
     }
 }
 
