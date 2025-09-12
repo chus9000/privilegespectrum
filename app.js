@@ -120,29 +120,16 @@ function generatePin() {
 // Firebase functions
 async function saveEventToFirebase(eventId, eventData) {
     try {
-        const response = await fetch('https://firestore.googleapis.com/v1/projects/privilegespectrum/databases/(default)/documents/events/' + eventId, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                fields: {
-                    title: { stringValue: eventData.title },
-                    pin: { stringValue: eventData.pin },
-                    participants: { arrayValue: { values: [] } },
-                    createdAt: { timestampValue: new Date().toISOString() }
-                }
-            })
+        await window.firebaseSetDoc(window.firebaseDoc(window.firebaseDB, 'events', eventId), {
+            title: eventData.title,
+            pin: eventData.pin,
+            participants: eventData.participants || [],
+            createdAt: new Date()
         });
-        
-        if (response.ok) {
-            console.log('✅ Event saved to Firebase successfully');
-        } else {
-            const errorText = await response.text();
-            console.error('❌ Firebase save failed:', errorText);
-        }
+        console.log('✅ Event saved to Firebase successfully');
     } catch (error) {
-        console.error('❌ Firebase save network error:', error);
+        console.error('❌ Firebase save failed:', error);
+        throw error;
     }
 }
 
