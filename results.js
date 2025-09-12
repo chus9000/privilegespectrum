@@ -1,11 +1,36 @@
 const urlParams = new URLSearchParams(window.location.search);
 const eventId = urlParams.get('id');
-const eventData = JSON.parse(localStorage.getItem(`event_${eventId}`));
+let eventData;
 
-if (!eventData) {
-    document.body.innerHTML = '<div class="container"><div class="card"><h1>Event not found</h1></div></div>';
-} else {
-    loadResults();
+// Load event data from Firebase or localStorage
+loadEventData();
+
+async function loadEventData() {
+    // Try Firebase first
+    try {
+        eventData = await window.FirebaseAPI.loadEvent(eventId);
+        if (eventData) {
+            console.log('✅ Results loaded from Firebase:', eventData.participants.length, 'participants');
+        } else {
+            console.log('⚠️ Event not found in Firebase');
+        }
+    } catch (error) {
+        console.log('⚠️ Firebase load failed:', error.message);
+    }
+    
+    // Fallback to localStorage
+    if (!eventData) {
+        eventData = JSON.parse(localStorage.getItem(`event_${eventId}`) || 'null');
+        if (eventData) {
+            console.log('📁 Results loaded from localStorage:', eventData.participants.length, 'participants');
+        }
+    }
+    
+    if (!eventData) {
+        document.body.innerHTML = '<div class="container"><div class="card"><h1>Event not found</h1></div></div>';
+    } else {
+        loadResults();
+    }
 }
 
 function loadResults() {
