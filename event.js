@@ -51,11 +51,15 @@ function setupPinEntry() {
     
     document.getElementById('submitPin').addEventListener('click', () => {
         const enteredPin = document.getElementById('pinInput').value.trim();
+        console.log('Entered PIN:', enteredPin, 'Expected:', eventData.pin);
+        
         if (enteredPin === eventData.pin.toString()) {
+            console.log('PIN correct, loading event...');
             document.getElementById('pinContainer').style.display = 'none';
             document.getElementById('eventContent').style.display = 'block';
             loadEvent();
         } else {
+            console.log('PIN incorrect');
             alert('Invalid PIN. Please try again.');
             document.getElementById('pinInput').value = '';
         }
@@ -81,7 +85,8 @@ function loadEvent() {
         const existingIndex = eventData.participants.findIndex(p => p.name === participant.name);
         if (existingIndex === -1) {
             eventData.participants.push(participant);
-            updateParticipant();
+            // Don't call updateParticipant here to avoid async issues during initial load
+            localStorage.setItem(`event_${eventId}`, JSON.stringify(eventData));
         }
     }
     
