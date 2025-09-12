@@ -12,12 +12,18 @@ async function loadEventData() {
         const response = await fetch(`https://firestore.googleapis.com/v1/projects/privilegespectrum/databases/(default)/documents/events/${eventId}`);
         if (response.ok) {
             const firebaseData = await response.json();
-            eventData = {
-                title: firebaseData.fields.title.stringValue,
-                pin: firebaseData.fields.pin.stringValue,
-                participants: firebaseData.fields.participants?.arrayValue?.values?.map(v => JSON.parse(v.stringValue)) || []
-            };
-            console.log('✅ Event loaded from Firebase:', eventData.title);
+            console.log('🔍 Firebase raw data:', firebaseData);
+            
+            if (firebaseData.fields) {
+                eventData = {
+                    title: firebaseData.fields.title?.stringValue || 'Unknown Event',
+                    pin: firebaseData.fields.pin?.stringValue || '000000',
+                    participants: firebaseData.fields.participants?.arrayValue?.values?.map(v => JSON.parse(v.stringValue)) || []
+                };
+                console.log('✅ Event loaded from Firebase:', eventData.title);
+            } else {
+                console.log('⚠️ Firebase data missing fields structure');
+            }
         } else {
             console.log('⚠️ Firebase response not ok:', response.status);
         }
