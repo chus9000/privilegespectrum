@@ -560,6 +560,24 @@ button:active {
     }
 }
 
+.attribution {
+    font-size: 0.85rem;
+    color: #64748b;
+    text-align: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 16px;
+}
+
+.attribution a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.attribution a:hover {
+    text-decoration: underline;
+}
+
 .results-layout .footer {
     background: #f8fafc;
     border-top: 1px solid #e2e8f0;
