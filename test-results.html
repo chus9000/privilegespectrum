@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Results - Colorful Spectrum</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
+    <link rel="manifest" href="./site.webmanifest">
+</head>
+<body class="results-page">
+    <div class="results-layout">
+        <div class="logo-header">
+            <a href="index.html" class="logo-small">
+                <div class="logo-small-line-1">Today's</div>
+                <div class="logo-small-line-2">Privilege</div>
+                <div class="logo-small-line-3">Spectrum</div>
+            </a>
+        </div>
+        
+        <div class="results-header">
+            <h1>test 2 - Results</h1>
+        </div>
+        
+        <div class="results-content">
+            <div class="spectrum-container">
+                <div class="spectrum-bar">
+                    <div class="spectrum-section" data-value="-25">-25</div>
+                    <div class="spectrum-section" data-value="-20">-20</div>
+                    <div class="spectrum-section" data-value="-15">-15</div>
+                    <div class="spectrum-section" data-value="-10">-10</div>
+                    <div class="spectrum-section" data-value="-5">-5</div>
+                    <div class="spectrum-section" data-value="5">5</div>
+                    <div class="spectrum-section" data-value="10">10</div>
+                    <div class="spectrum-section" data-value="15">15</div>
+                    <div class="spectrum-section" data-value="20">20</div>
+                    <div class="spectrum-section" data-value="25">25</div>
+                    
+                    <!-- Sample participants positioned on the spectrum -->
+                    <!-- Default center position - no conflicts -->
+                    <div class="participant-marker">
+                        <div class="participant-container" style="left: 20%">
+                            <div class="participant-avatar">🧑‍💼</div>
+                            <div class="participant-name-label">Alex (-15)</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Participants with ±3 range conflicts - Lisa (-4) and Sarah (-2) are 2 points apart -->
+                    <div class="participant-marker" data-row="1">
+                        <div class="participant-container" style="left: 44%">
+                            <div class="participant-avatar">👩‍💻</div>
+                            <div class="participant-name-label">Lisa (-4)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="participant-marker" data-row="3">
+                        <div class="participant-container" style="left: 48%">
+                            <div class="participant-avatar">👩‍🎓</div>
+                            <div class="participant-name-label">Sarah (-2)</div>
+                        </div>
+                    </div>
+                    
+                    <!-- John (-1) positioned slightly left of center -->
+                    <div class="participant-marker">
+                        <div class="participant-container" style="left: 48%">
+                            <div class="participant-avatar">🧑‍🔬</div>
+                            <div class="participant-name-label">John (-1)</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Zero score participant exactly on center line -->
+                    <div class="participant-marker" data-row="1">
+                        <div class="participant-container" style="left: 50%">
+                            <div class="participant-avatar">🧑‍⚖️</div>
+                            <div class="participant-name-label">Sam (0)</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Default center positions for non-conflicting participants -->
+                    <div class="participant-marker">
+                        <div class="participant-container" style="left: 70%">
+                            <div class="participant-avatar">🧑‍🚀</div>
+                            <div class="participant-name-label">Mike (+10)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="participant-marker">
+                        <div class="participant-container" style="left: 85%">
+                            <div class="participant-avatar">👩‍🎨</div>
+                            <div class="participant-name-label">Emma (+17)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div>Made with love © 2025 <a href="https://jesusmartin.eu" target="_blank">jesusmartin.eu</a></div>
+            <div>Any feedback? reach out to <a href="mailto:hi@jesusmartin.eu">hi@jesusmartin.eu</a> | <a href="privacy.html">Privacy</a> | <a href="terms.html">Terms</a></div>
+        </div>
+    </footer>
+</body>
+</html>

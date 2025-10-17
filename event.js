@@ -82,11 +82,17 @@ function loadEvent() {
         localStorage.setItem(`participant_${eventId}`, JSON.stringify(participant));
         
         // Add new participant to event data and save to Firebase
-        const existingIndex = eventData.participants.findIndex(p => p.name === participant.name);
+        const existingIndex = eventData.participants.findIndex(p => p.id === participant.id);
         if (existingIndex === -1) {
             eventData.participants.push(participant);
             // Don't call updateParticipant here to avoid async issues during initial load
             localStorage.setItem(`event_${eventId}`, JSON.stringify(eventData));
+        }
+    } else {
+        // For existing participants, ensure they have an ID (backward compatibility)
+        if (!participant.id) {
+            participant.id = generateUniqueId();
+            localStorage.setItem(`participant_${eventId}`, JSON.stringify(participant));
         }
     }
     
@@ -189,7 +195,8 @@ function initializeProgress() {
 }
 
 async function updateParticipant() {
-    const existingIndex = eventData.participants.findIndex(p => p.name === participant.name);
+    // Use participant ID for finding existing participant instead of name
+    const existingIndex = eventData.participants.findIndex(p => p.id === participant.id);
     if (existingIndex >= 0) {
         eventData.participants[existingIndex] = participant;
     } else {
@@ -219,9 +226,108 @@ function generateParticipant() {
     const noun = nouns[Math.floor(Math.random() * nouns.length)];
     
     return {
+        id: generateUniqueId(),
         name: `${adjective} ${noun}`,
         avatar: avatars[Math.floor(Math.random() * avatars.length)],
         score: 0,
         answers: {}
     };
+}
+
+function generateUniqueId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+// Available animal emojis for selection
+const availableEmojis = [
+    '🐱', '🐶', '🦊', '🐻', '🐼', '🦁', '🐯', '🐸', '🐵', '🦄',
+    '🐰', '🐨', '🐷', '🐮', '🐹', '🐭', '🐺', '🦝', '🦔', '🐧',
+    '🐥', '🐣', '🐤', '🦆', '🦅', '🦉', '🦜', '🐢', '🐍', '🦎',
+    '🐙', '🦑', '🦐', '🦀', '🐠', '🐟', '🐡', '🦈', '🐳', '🐋',
+    '🦒', '🐘', '🦏', '🦛', '🐪', '🐫', '🦘', '🦌', '🐄', '🐂',
+    '🐎', '🦓', '🐖', '🐏', '🐑', '🐐', '🦙', '🦥', '🐿️', '🦫'
+];
+
+// Name editing functionality
+function editName() {
+    const nameElement = document.getElementById('participantName');
+    const nameInput = document.getElementById('nameInput');
+    
+    nameInput.value = nameElement.textContent;
+    nameElement.style.display = 'none';
+    nameInput.style.display = 'block';
+    nameInput.focus();
+    nameInput.select();
+}
+
+function saveName() {
+    const nameElement = document.getElementById('participantName');
+    const nameInput = document.getElementById('nameInput');
+    
+    const newName = nameInput.value.trim();
+    if (newName && newName !== participant.name) {
+        participant.name = newName;
+        nameElement.textContent = newName;
+        updateParticipant();
+    }
+    
+    nameInput.style.display = 'none';
+    nameElement.style.display = 'block';
+}
+
+function handleNameKeypress(event) {
+    if (event.key === 'Enter') {
+        saveName();
+    } else if (event.key === 'Escape') {
+        const nameElement = document.getElementById('participantName');
+        const nameInput = document.getElementById('nameInput');
+        
+        nameInput.style.display = 'none';
+        nameElement.style.display = 'block';
+    }
+}
+
+// Emoji selector functionality
+function openEmojiSelector() {
+    const modal = document.getElementById('emojiModal');
+    const emojiGrid = document.getElementById('emojiGrid');
+    
+    // Clear existing emojis
+    emojiGrid.innerHTML = '';
+    
+    // Create emoji buttons
+    availableEmojis.forEach(emoji => {
+        const emojiButton = document.createElement('div');
+        emojiButton.className = 'emoji-option';
+        emojiButton.textContent = emoji;
+        emojiButton.onclick = () => selectEmoji(emoji);
+        
+        // Highlight current emoji
+        if (emoji === participant.avatar) {
+            emojiButton.classList.add('selected');
+        }
+        
+        emojiGrid.appendChild(emojiButton);
+    });
+    
+    modal.style.display = 'block';
+}
+
+function selectEmoji(emoji) {
+    participant.avatar = emoji;
+    document.getElementById('participantAvatar').textContent = emoji;
+    updateParticipant();
+    closeEmojiSelector();
+}
+
+function closeEmojiSelector() {
+    document.getElementById('emojiModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('emojiModal');
+    if (event.target === modal) {
+        closeEmojiSelector();
+    }
 }

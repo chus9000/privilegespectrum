@@ -19,7 +19,13 @@ document.getElementById('eventForm').addEventListener('submit', async (e) => {
     localStorage.setItem(`event_${eventId}`, JSON.stringify(eventData));
     
     // Add to archive
-    addToArchive({ id: eventId, title, pin: eventPin, url: `${window.location.origin}${window.location.pathname.replace('index.html', '')}questions.html?id=${eventId}` });
+    addToArchive({ 
+        id: eventId, 
+        title, 
+        pin: eventPin, 
+        url: `${window.location.origin}${window.location.pathname.replace('index.html', '')}questions.html?id=${eventId}`,
+        createdAt: new Date().toISOString()
+    });
     
     currentEventUrl = `${window.location.origin}${window.location.pathname.replace('index.html', '')}questions.html?id=${eventId}`;
     currentEventPin = eventPin;
@@ -148,19 +154,48 @@ function loadArchive() {
     
     if (archive.length > 0) {
         archiveSection.style.display = 'block';
-        archiveContainer.innerHTML = archive.map(event => {
+        archiveContainer.innerHTML = archive.map((event, index) => {
             // Update old event.html URLs to questions.html
             const updatedUrl = event.url.replace('event.html', 'questions.html');
+            
+            // Format the creation date
+            let formattedDate = '';
+            if (event.createdAt) {
+                const date = new Date(event.createdAt);
+                formattedDate = date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+            }
+            
             return `
                 <div class="archive-item">
-                    <div class="archive-title">${event.title}</div>
+                    <div class="archive-header">
+                        <div class="archive-title">${event.title}</div>
+                        ${formattedDate ? `<div class="archive-date">${formattedDate}</div>` : ''}
+                    </div>
                     <div class="archive-details">
                         <span class="archive-pin">PIN: ${event.pin}</span>
-                        <a href="${updatedUrl}" class="archive-link" target="_blank">Open Event</a>
+                        <div class="archive-actions">
+                            <button class="archive-btn open-btn" onclick="window.open('${updatedUrl}', '_blank')">Open Event</button>
+                            <button class="archive-btn delete-btn" onclick="deleteEvent(${index})" title="Delete event"></button>
+                        </div>
                     </div>
                 </div>
             `;
         }).join('');
+    } else {
+        archiveSection.style.display = 'none';
+    }
+}
+
+function deleteEvent(index) {
+    if (confirm('Are you sure you want to delete this event from your archive?')) {
+        let archive = JSON.parse(localStorage.getItem('eventArchive') || '[]');
+        archive.splice(index, 1);
+        localStorage.setItem('eventArchive', JSON.stringify(archive));
+        loadArchive();
     }
 }
 

@@ -43,8 +43,9 @@
         <div class="event-layout">
             <div class="sidebar">
                 <div class="participant-card">
-                    <div class="avatar" id="participantAvatar"></div>
-                    <h3 id="participantName"></h3>
+                    <div class="avatar" id="participantAvatar" onclick="openEmojiSelector()"></div>
+                    <h3 id="participantName" onclick="editName()" class="editable-name"></h3>
+                    <input type="text" id="nameInput" class="name-input" style="display: none;" onblur="saveName()" onkeypress="handleNameKeypress(event)">
                     <div class="progress-container">
                         <div class="progress-label">Progress</div>
                         <div class="progress-bar">
@@ -64,6 +65,19 @@
         </div>
         
         
+    </div>
+
+    <!-- Emoji Selector Modal -->
+    <div id="emojiModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Choose Your Avatar</h2>
+                <span class="close-outside" onclick="closeEmojiSelector()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="emoji-grid" id="emojiGrid"></div>
+            </div>
+        </div>
     </div>
 
     <footer class="footer">
