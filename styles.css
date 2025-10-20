@@ -1017,10 +1017,15 @@ button:active {
 
 /* Mobile adjustments for participant positioning */
 @media (max-width: 920px) {
+    .spectrum-bar {
+        position: relative; /* Ensure spectrum-bar is the positioning context */
+    }
+    
     .participant-marker {
-        /* Ensure participants are positioned relative to the expanded spectrum bar */
-        width: 1024px; /* Match the mobile spectrum bar width */
-        left: 0; /* Reset left positioning to work with expanded width */
+        /* Ensure participants are positioned relative to the spectrum bar */
+        width: 100%; /* Keep as 100% of spectrum-bar */
+        left: 0;
+        position: absolute; /* Position relative to spectrum-bar */
     }
 }
 
