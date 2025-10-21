@@ -46,8 +46,9 @@ function setupRealTimeUpdates() {
         realTimeListener = window.FirebaseAPI.onEventUpdate(eventId, (updatedEventData) => {
             if (updatedEventData && hasParticipantChanges(eventData, updatedEventData)) {
                 console.log('🆕 Participant changes detected, updating results...');
+                const hadNewParticipants = hasNewParticipants(eventData, updatedEventData);
                 eventData = updatedEventData;
-                refreshResults();
+                refreshResults(hadNewParticipants);
             }
         });
     } else {
@@ -62,8 +63,9 @@ function setupLocalStoragePolling() {
         const updatedData = JSON.parse(localStorage.getItem(`event_${eventId}`) || 'null');
         if (updatedData && hasParticipantChanges(eventData, updatedData)) {
             console.log('🆕 Participant changes detected in localStorage, updating results...');
+            const hadNewParticipants = hasNewParticipants(eventData, updatedData);
             eventData = updatedData;
-            refreshResults();
+            refreshResults(hadNewParticipants);
         }
     }, 3000);
 }
@@ -75,8 +77,9 @@ function setupPolling() {
             const updatedData = await window.FirebaseAPI.loadEvent(eventId);
             if (updatedData && hasParticipantChanges(eventData, updatedData)) {
                 console.log('🆕 Participant changes detected via polling, updating results...');
+                const hadNewParticipants = hasNewParticipants(eventData, updatedData);
                 eventData = updatedData;
-                refreshResults();
+                refreshResults(hadNewParticipants);
             }
         } catch (error) {
             // Silently handle polling errors
@@ -84,7 +87,7 @@ function setupPolling() {
     }, 5000);
 }
 
-function refreshResults() {
+function refreshResults(showNewParticipantNotification = false) {
     // Update stored participants data
     allParticipants = [...eventData.participants];
     
@@ -94,8 +97,10 @@ function refreshResults() {
         updateSearchCount();
     }, 100);
     
-    // Show brief notification
-    showUpdateNotification();
+    // Only show notification if there are actually new participants
+    if (showNewParticipantNotification) {
+        showUpdateNotification();
+    }
 }
 
 function showUpdateNotification() {
@@ -190,6 +195,14 @@ function hasParticipantChanges(oldData, newData) {
     }
     
     return false;
+}
+
+// Helper function to detect if new participants were added (not just changes)
+function hasNewParticipants(oldData, newData) {
+    if (!oldData || !newData) return false;
+    
+    // Only return true if the participant count increased
+    return newData.participants.length > oldData.participants.length;
 }
 
 // Clean up listener when page unloads
