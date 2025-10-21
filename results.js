@@ -44,8 +44,8 @@ function setupRealTimeUpdates() {
     if (window.FirebaseAPI && window.FirebaseAPI.onEventUpdate) {
         console.log('🔄 Setting up real-time updates...');
         realTimeListener = window.FirebaseAPI.onEventUpdate(eventId, (updatedEventData) => {
-            if (updatedEventData && updatedEventData.participants.length !== eventData.participants.length) {
-                console.log('🆕 New participant detected, updating results...');
+            if (updatedEventData && hasParticipantChanges(eventData, updatedEventData)) {
+                console.log('🆕 Participant changes detected, updating results...');
                 eventData = updatedEventData;
                 refreshResults();
             }
@@ -60,8 +60,8 @@ function setupLocalStoragePolling() {
     // Poll localStorage every 3 seconds for changes
     setInterval(() => {
         const updatedData = JSON.parse(localStorage.getItem(`event_${eventId}`) || 'null');
-        if (updatedData && updatedData.participants.length !== eventData.participants.length) {
-            console.log('🆕 New participant detected in localStorage, updating results...');
+        if (updatedData && hasParticipantChanges(eventData, updatedData)) {
+            console.log('🆕 Participant changes detected in localStorage, updating results...');
             eventData = updatedData;
             refreshResults();
         }
@@ -90,7 +90,9 @@ function refreshResults() {
     existingParticipants.forEach(p => p.remove());
     
     // Reload results with animation
-    loadResults();
+    setTimeout(() => {
+        loadResults();
+    }, 100);
     
     // Show brief notification
     showUpdateNotification();
@@ -168,6 +170,27 @@ window.addEventListener('resize', () => {
         centerSpectrumOnZero();
     }
 });
+
+// Helper function to detect participant changes
+function hasParticipantChanges(oldData, newData) {
+    if (!oldData || !newData) return true;
+    if (oldData.participants.length !== newData.participants.length) return true;
+    
+    // Check for score or name changes
+    for (let i = 0; i < oldData.participants.length; i++) {
+        const oldParticipant = oldData.participants[i];
+        const newParticipant = newData.participants.find(p => p.id === oldParticipant.id);
+        
+        if (!newParticipant || 
+            oldParticipant.score !== newParticipant.score || 
+            oldParticipant.name !== newParticipant.name ||
+            oldParticipant.avatar !== newParticipant.avatar) {
+            return true;
+        }
+    }
+    
+    return false;
+}
 
 // Clean up listener when page unloads
 window.addEventListener('beforeunload', () => {
