@@ -12,16 +12,30 @@
 </head>
 <body class="results-page">
     <div class="results-layout">
-        <div class="logo-header">
-            <a href="index.html" class="logo-small">
-                <div class="logo-small-line-1">Today's</div>
-                <div class="logo-small-line-2">Privilege</div>
-                <div class="logo-small-line-3">Spectrum</div>
-            </a>
-        </div>
-        
-        <div class="results-header">
-            <h1 id="eventTitle"></h1>
+        <div class="results-header-new">
+            <div class="header-logo">
+                <a href="index.html" class="logo-compact">
+                    <span class="logo-text">Privilege</span>
+                    <span class="logo-text">Spectrum</span>
+                </a>
+            </div>
+            
+            <div class="header-title">
+                <h1 id="eventTitle"></h1>
+            </div>
+            
+            <div class="header-search">
+                <button class="search-toggle" id="searchToggle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </button>
+                <div class="search-container" id="searchContainer" style="display: none;">
+                    <input type="text" id="searchInput" placeholder="Search participants..." class="search-input">
+                    <div class="search-results-count" id="searchCount"></div>
+                </div>
+            </div>
         </div>
         
         <div class="results-content">
@@ -40,6 +54,35 @@
                 </div>
             </div>
             <div id="participantsResults"></div>
+        </div>
+    </div>
+
+    <!-- Participant Details Modal -->
+    <div id="participantModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Participant Details</h2>
+                <span class="close-btn" id="closeModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="participant-details">
+                    <div class="participant-avatar-large" id="modalAvatar"></div>
+                    <h3 id="modalName"></h3>
+                    <div class="participant-score-large" id="modalScore"></div>
+                    
+                    <div class="privilege-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="privilegeComparison"></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="modeComparison"></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="medianComparison"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

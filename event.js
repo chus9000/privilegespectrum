@@ -234,8 +234,19 @@ function generateParticipant() {
     };
 }
 
+// Counter to prevent same-millisecond collisions
+let idCounter = 0;
+
 function generateUniqueId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    // Multiple entropy sources for maximum uniqueness
+    const timestamp = Date.now().toString(36);
+    const performanceTime = performance.now().toString(36).replace('.', '');
+    const randomPart1 = Math.random().toString(36).substr(2, 8);
+    const randomPart2 = Math.random().toString(36).substr(2, 8);
+    const counter = (++idCounter).toString(36);
+    
+    // Combine all entropy sources
+    return `${timestamp}-${performanceTime}-${randomPart1}-${randomPart2}-${counter}`;
 }
 
 // Available animal emojis for selection

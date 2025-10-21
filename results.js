@@ -85,13 +85,13 @@ function setupPolling() {
 }
 
 function refreshResults() {
-    // Clear existing participants
-    const existingParticipants = document.querySelectorAll('.participant-marker');
-    existingParticipants.forEach(p => p.remove());
+    // Update stored participants data
+    allParticipants = [...eventData.participants];
     
-    // Reload results with animation
+    // Re-render participants with new data
     setTimeout(() => {
-        loadResults();
+        renderParticipants();
+        updateSearchCount();
     }, 100);
     
     // Show brief notification
@@ -199,6 +199,10 @@ window.addEventListener('beforeunload', () => {
     }
 });
 
+// Global variables for search functionality
+let allParticipants = [];
+let currentSearchTerm = '';
+
 function loadResults() {
     document.getElementById('eventTitle').textContent = eventData.title + ' - Results';
 
@@ -208,75 +212,49 @@ function loadResults() {
     // Center spectrum on 0 position for mobile devices
     centerSpectrumOnZero();
     
-    // Sort participants by score for easier conflict detection
-    const sortedParticipants = [...eventData.participants].sort((a, b) => a.score - b.score);
+    // Store all participants for search functionality
+    allParticipants = [...eventData.participants];
     
-    // Detect conflicts (participants within ±3 score range)
-    const participantRows = new Map();
-    const usedPositions = new Map(); // Track used positions for each row
+    // Apply dynamic row allocation and render participants
+    renderParticipants();
     
-    sortedParticipants.forEach(participant => {
-        // Calculate position based on score (-25 to +25 maps to 0% to 100%)
-        let scorePercentage = ((participant.score + 25) / 50) * 100;
-        
-        // Default to center row
-        let assignedRow = 2;
-        
-        // Check for visual overlap with existing participants
-        let needsDifferentRow = false;
-        
-        for (let [existingParticipant, existingData] of participantRows) {
-            const positionDiff = Math.abs(scorePercentage - existingData.position);
-            
-            // If positions would overlap visually (within 8% horizontal distance)
-            if (positionDiff < 8) {
-                needsDifferentRow = true;
-                break;
-            }
-        }
-        
-        if (needsDifferentRow) {
-            // Find available row (prefer center, then 1, then 3)
-            const rowPreference = [2, 1, 3];
-            
-            for (let preferredRow of rowPreference) {
-                let rowAvailable = true;
-                
-                for (let [existingParticipant, existingData] of participantRows) {
-                    if (existingData.row === preferredRow) {
-                        const positionDiff = Math.abs(scorePercentage - existingData.position);
-                        if (positionDiff < 8) { // Too close in same row
-                            rowAvailable = false;
-                            break;
-                        }
-                    }
-                }
-                
-                if (rowAvailable) {
-                    assignedRow = preferredRow;
-                    break;
-                }
-            }
-        }
-        
-        participantRows.set(participant, {
-            row: assignedRow,
-            position: scorePercentage
-        });
-    });
+    // Set up search functionality
+    setupSearchFunctionality();
+    
+    // Update search results count
+    updateSearchCount();
+}
+
+function renderParticipants() {
+    const spectrumBar = document.querySelector('.spectrum-bar');
+    
+    // Clear existing participants
+    const existingParticipants = spectrumBar.querySelectorAll('.participant-marker');
+    existingParticipants.forEach(p => p.remove());
+    
+    // Sort participants by score for consistent ordering
+    const sortedParticipants = [...allParticipants].sort((a, b) => a.score - b.score);
+    
+    // Simple round-robin allocation across 20 rows
+    const participantRows = allocateDynamicRows(sortedParticipants);
     
     // Create participant elements
     participantRows.forEach((data, participant) => {
         const participantDiv = document.createElement('div');
         participantDiv.className = 'participant-marker';
+        participantDiv.setAttribute('data-participant-id', participant.id);
         
-        // Only set data-row if not default center position
-        if (data.row !== 2) {
-            participantDiv.setAttribute('data-row', data.row);
+        // Set row data attribute for positioning
+        participantDiv.setAttribute('data-row', data.row);
+        
+        // Apply search filter if active
+        const matchesSearch = doesParticipantMatchSearch(participant, currentSearchTerm);
+        if (currentSearchTerm && !matchesSearch) {
+            participantDiv.classList.add('filtered-out');
         }
         
         participantDiv.innerHTML = `
-            <div class="participant-container" style="left: ${data.position}%">
+            <div class="participant-container" style="left: ${data.position}%" onclick="showParticipantModal('${participant.id}')">
                 <div class="participant-avatar">${participant.avatar}</div>
                 <div class="participant-name-label">${participant.name} (${participant.score > 0 ? '+' : ''}${participant.score})</div>
             </div>
@@ -285,3 +263,244 @@ function loadResults() {
         spectrumBar.appendChild(participantDiv);
     });
 }
+
+function allocateDynamicRows(sortedParticipants) {
+    const participantRows = new Map();
+    
+    console.log(`🚀 Starting simple round-robin allocation for ${sortedParticipants.length} participants across 20 rows`);
+    
+    // Simple round-robin distribution across exactly 20 rows
+    sortedParticipants.forEach((participant, index) => {
+        // Calculate position based on score (-25 to +25 maps to 0% to 100%)
+        const scorePercentage = ((participant.score + 25) / 50) * 100;
+        
+        // Round-robin: cycle through rows 0-19
+        const assignedRow = index % 20;
+        
+        console.log(`👤 ${participant.name} (${participant.score}) → Row ${assignedRow}`);
+        
+        participantRows.set(participant, {
+            row: assignedRow,
+            position: scorePercentage
+        });
+    });
+    
+    return participantRows;
+}
+
+
+function setupSearchFunctionality() {
+    const searchInput = document.getElementById('searchInput');
+    const searchToggle = document.getElementById('searchToggle');
+    const searchContainer = document.getElementById('searchContainer');
+    
+    if (!searchInput || !searchToggle || !searchContainer) return;
+    
+    // Toggle search container visibility
+    searchToggle.addEventListener('click', () => {
+        const isVisible = searchContainer.style.display !== 'none';
+        
+        if (isVisible) {
+            // Hide search
+            searchContainer.style.display = 'none';
+            searchToggle.classList.remove('active');
+            // Clear search when hiding
+            searchInput.value = '';
+            handleSearchInput({ target: { value: '' } });
+        } else {
+            // Show search
+            searchContainer.style.display = 'block';
+            searchToggle.classList.add('active');
+            // Focus on input
+            setTimeout(() => searchInput.focus(), 100);
+        }
+    });
+    
+    // Close search when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!searchToggle.contains(e.target) && !searchContainer.contains(e.target)) {
+            searchContainer.style.display = 'none';
+            searchToggle.classList.remove('active');
+        }
+    });
+    
+    // Remove existing event listeners to prevent duplicates
+    searchInput.removeEventListener('input', handleSearchInput);
+    searchInput.removeEventListener('keyup', handleSearchInput);
+    
+    // Add search event listeners
+    searchInput.addEventListener('input', handleSearchInput);
+    searchInput.addEventListener('keyup', handleSearchInput);
+    
+    // Clear search on escape key
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            searchInput.value = '';
+            handleSearchInput({ target: { value: '' } });
+            searchContainer.style.display = 'none';
+            searchToggle.classList.remove('active');
+        }
+    });
+}
+
+function handleSearchInput(event) {
+    const searchTerm = event.target.value.toLowerCase().trim();
+    currentSearchTerm = searchTerm;
+    
+    // Apply search filter to all participants
+    const participantMarkers = document.querySelectorAll('.participant-marker');
+    let visibleCount = 0;
+    
+    participantMarkers.forEach(marker => {
+        const participantId = marker.getAttribute('data-participant-id');
+        const participant = allParticipants.find(p => p.id === participantId);
+        
+        if (participant) {
+            const matches = doesParticipantMatchSearch(participant, searchTerm);
+            
+            if (searchTerm === '' || matches) {
+                marker.classList.remove('filtered-out');
+                visibleCount++;
+            } else {
+                marker.classList.add('filtered-out');
+            }
+        }
+    });
+    
+    // Update search results count
+    updateSearchCount(visibleCount, allParticipants.length);
+}
+
+function doesParticipantMatchSearch(participant, searchTerm) {
+    if (!searchTerm) return true;
+    
+    const name = participant.name.toLowerCase();
+    const score = participant.score.toString();
+    const avatar = participant.avatar.toLowerCase();
+    
+    return name.includes(searchTerm) || 
+           score.includes(searchTerm) || 
+           avatar.includes(searchTerm);
+}
+
+function updateSearchCount(visibleCount = null, totalCount = null) {
+    const searchCountElement = document.getElementById('searchCount');
+    if (!searchCountElement) return;
+    
+    if (visibleCount === null) {
+        visibleCount = allParticipants.length;
+        totalCount = allParticipants.length;
+    }
+    
+    if (currentSearchTerm) {
+        searchCountElement.textContent = `${visibleCount} of ${totalCount} participants`;
+        searchCountElement.style.display = 'block';
+    } else {
+        searchCountElement.textContent = `${totalCount} participants`;
+        searchCountElement.style.display = 'block';
+    }
+}
+
+// Modal functionality
+function showParticipantModal(participantId) {
+    const participant = allParticipants.find(p => p.id === participantId);
+    if (!participant) return;
+    
+    // Calculate statistics
+    const stats = calculateParticipantStats(participant);
+    
+    // Populate modal content
+    document.getElementById('modalAvatar').textContent = participant.avatar;
+    document.getElementById('modalName').textContent = participant.name;
+    document.getElementById('modalScore').textContent = `Score: ${participant.score > 0 ? '+' : ''}${participant.score}`;
+    
+    // Populate statistics
+    document.getElementById('privilegeComparison').textContent = stats.privilegeComparison;
+    document.getElementById('privilegeComparison').className = `stat-value ${stats.privilegeClass}`;
+    
+    document.getElementById('modeComparison').textContent = stats.modeComparison;
+    document.getElementById('modeComparison').className = `stat-value ${stats.modeClass}`;
+    
+    document.getElementById('medianComparison').textContent = stats.medianComparison;
+    document.getElementById('medianComparison').className = `stat-value ${stats.medianClass}`;
+    
+    // Show modal
+    document.getElementById('participantModal').style.display = 'block';
+}
+
+function calculateParticipantStats(participant) {
+    const scores = allParticipants.map(p => p.score);
+    const totalParticipants = scores.length;
+    
+    // Calculate how many participants have lower scores (less privileged)
+    const lessPrivilegedCount = scores.filter(score => score < participant.score).length;
+    
+    // Calculate mode (most frequent score)
+    const scoreFrequency = {};
+    scores.forEach(score => {
+        scoreFrequency[score] = (scoreFrequency[score] || 0) + 1;
+    });
+    const maxFrequency = Math.max(...Object.values(scoreFrequency));
+    const modes = Object.keys(scoreFrequency).filter(score => scoreFrequency[score] === maxFrequency).map(Number);
+    const mode = modes.length === 1 ? modes[0] : modes[0]; // Use first mode if multiple
+    
+    // Calculate median
+    const sortedScores = [...scores].sort((a, b) => a - b);
+    const median = sortedScores.length % 2 === 0
+        ? (sortedScores[sortedScores.length / 2 - 1] + sortedScores[sortedScores.length / 2]) / 2
+        : sortedScores[Math.floor(sortedScores.length / 2)];
+    
+    // Calculate differences
+    const modeDifference = participant.score - mode;
+    const medianDifference = participant.score - median;
+    
+    // Format results with "You are:" prefix
+    const privilegeComparison = `${lessPrivilegedCount} participants out of ${totalParticipants} are less privileged than you`;
+    
+    const modeComparison = modeDifference === 0 
+        ? "You scored exactly at the mode"
+        : `${Math.abs(modeDifference)} points ${modeDifference > 0 ? 'above' : 'below'} the mode`;
+    
+    const medianComparison = medianDifference === 0 
+        ? "You scored exactly at the median"
+        : `${Math.abs(medianDifference)} points ${medianDifference > 0 ? 'above' : 'below'} the median`;
+    
+    return {
+        privilegeComparison,
+        modeComparison,
+        medianComparison,
+        privilegeClass: '',
+        modeClass: '',
+        medianClass: ''
+    };
+}
+
+function closeModal() {
+    document.getElementById('participantModal').style.display = 'none';
+}
+
+// Set up modal event listeners when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Close modal when clicking the close button
+    const closeBtn = document.getElementById('closeModal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeModal);
+    }
+    
+    // Close modal when clicking outside of it
+    const modal = document.getElementById('participantModal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    }
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+});
