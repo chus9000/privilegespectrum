@@ -73,8 +73,8 @@ function setupPolling() {
     setInterval(async () => {
         try {
             const updatedData = await window.FirebaseAPI.loadEvent(eventId);
-            if (updatedData && updatedData.participants.length !== eventData.participants.length) {
-                console.log('🆕 New participant detected via polling, updating results...');
+            if (updatedData && hasParticipantChanges(eventData, updatedData)) {
+                console.log('🆕 Participant changes detected via polling, updating results...');
                 eventData = updatedData;
                 refreshResults();
             }

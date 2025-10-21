@@ -45,7 +45,7 @@ export async function updateParticipant(eventId, participant) {
         if (!eventDoc) return false;
         
         const participants = eventDoc.participants || [];
-        const existingIndex = participants.findIndex(p => p.name === participant.name);
+        const existingIndex = participants.findIndex(p => p.id === participant.id);
         
         if (existingIndex >= 0) {
             participants[existingIndex] = participant;

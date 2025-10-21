@@ -16,6 +16,7 @@ window.FirebaseAPI = {
                             values: (eventData.participants || []).map(p => ({ 
                                 mapValue: { 
                                     fields: {
+                                        id: { stringValue: p.id || '' },
                                         name: { stringValue: p.name },
                                         avatar: { stringValue: p.avatar },
                                         score: { integerValue: p.score.toString() },
@@ -43,6 +44,7 @@ window.FirebaseAPI = {
             title: data.fields.title?.stringValue || '',
             pin: data.fields.pin?.stringValue || '',
             participants: data.fields.participants?.arrayValue?.values?.map(v => ({
+                id: v.mapValue.fields.id?.stringValue || '',
                 name: v.mapValue.fields.name?.stringValue || '',
                 avatar: v.mapValue.fields.avatar?.stringValue || '',
                 score: parseInt(v.mapValue.fields.score?.integerValue || '0'),
