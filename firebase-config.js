@@ -2,6 +2,9 @@
 const FIREBASE_PROJECT_ID = 'privilegespectrum';
 const FIREBASE_BASE_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 
+// Alternative approach using Firebase's public REST API for GitHub Pages
+const FIREBASE_PUBLIC_BASE_URL = `https://${FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com`;
+
 window.FirebaseAPI = {
     async saveEvent(eventId, eventData) {
         console.log('🔥 Firebase saveEvent called:', { eventId, participantCount: eventData.participants?.length || 0 });
@@ -61,6 +64,15 @@ window.FirebaseAPI = {
     },
 
     async updateParticipant(eventId, participant, maxRetries = 5) {
+        // First try the CORS-friendly approach using individual participant documents
+        try {
+            console.log(`🌐 Trying CORS-friendly approach for participant: ${participant.name}`);
+            return await this.updateParticipantCORSFriendly(eventId, participant);
+        } catch (error) {
+            console.log(`⚠️ CORS-friendly approach failed, falling back to original method:`, error.message);
+        }
+
+        // Fallback to original method (will likely fail on GitHub Pages due to CORS)
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 console.log(`🔄 Attempt ${attempt}/${maxRetries} to update participant: ${participant.name}`);
@@ -168,6 +180,85 @@ window.FirebaseAPI = {
         
         console.error(`❌ Failed to update participant after ${maxRetries} attempts`);
         return false;
+    },
+
+    // CORS-friendly approach: Store individual participants as separate documents
+    async updateParticipantCORSFriendly(eventId, participant) {
+        console.log(`🌐 Saving participant ${participant.name} as individual document`);
+        
+        const participantDoc = {
+            fields: {
+                eventId: { stringValue: eventId },
+                id: { stringValue: participant.id },
+                name: { stringValue: participant.name },
+                avatar: { stringValue: participant.avatar },
+                score: { integerValue: participant.score.toString() },
+                answers: { stringValue: JSON.stringify(participant.answers || {}) },
+                timestamp: { timestampValue: new Date().toISOString() }
+            }
+        };
+
+        // Try using a simple GET request with JSONP-style callback (no CORS preflight)
+        const participantUrl = `${FIREBASE_BASE_URL}/participants/${eventId}_${participant.id}`;
+        
+        try {
+            const response = await fetch(participantUrl, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(participantDoc)
+            });
+
+            if (response.ok) {
+                console.log(`✅ Participant ${participant.name} saved as individual document`);
+                return true;
+            } else {
+                console.error(`❌ Failed to save participant document: ${response.status}`);
+                return false;
+            }
+        } catch (error) {
+            console.error(`❌ CORS-friendly approach failed:`, error);
+            throw error;
+        }
+    },
+
+    // Load participants from individual documents
+    async loadParticipantsFromIndividualDocs(eventId) {
+        console.log(`🌐 Loading participants from individual documents for event: ${eventId}`);
+        
+        try {
+            // List all participant documents for this event
+            const listUrl = `${FIREBASE_BASE_URL}/participants?pageSize=1000`;
+            const response = await fetch(listUrl);
+            
+            if (!response.ok) {
+                console.error(`❌ Failed to list participant documents: ${response.status}`);
+                return [];
+            }
+            
+            const data = await response.json();
+            const participants = [];
+            
+            if (data.documents) {
+                for (const doc of data.documents) {
+                    const fields = doc.fields;
+                    if (fields.eventId?.stringValue === eventId) {
+                        participants.push({
+                            id: fields.id?.stringValue || '',
+                            name: fields.name?.stringValue || '',
+                            avatar: fields.avatar?.stringValue || '',
+                            score: parseInt(fields.score?.integerValue || '0'),
+                            answers: JSON.parse(fields.answers?.stringValue || '{}')
+                        });
+                    }
+                }
+            }
+            
+            console.log(`✅ Loaded ${participants.length} participants from individual documents`);
+            return participants;
+        } catch (error) {
+            console.error(`❌ Failed to load participants from individual documents:`, error);
+            return [];
+        }
     },
 
     async loadEvent(eventId) {

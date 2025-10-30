@@ -31,6 +31,32 @@ async function loadEventData() {
         });
     }
     
+    // Try loading participants from individual documents if main event has no participants
+    if (!eventData || !eventData.participants || eventData.participants.length === 0) {
+        console.log('🌐 Trying to load participants from individual documents...');
+        try {
+            const individualParticipants = await window.FirebaseAPI.loadParticipantsFromIndividualDocs(eventId);
+            if (individualParticipants && individualParticipants.length > 0) {
+                console.log('✅ Results loaded from individual participant documents:', individualParticipants.length, 'participants');
+                if (eventData) {
+                    eventData.participants = individualParticipants;
+                } else {
+                    // Create minimal event data structure
+                    eventData = {
+                        title: 'Event Results',
+                        pin: '',
+                        participants: individualParticipants
+                    };
+                }
+                setupPolling(); // Use Firebase polling for individual docs
+            } else {
+                console.log('⚠️ No participants found in individual documents either');
+            }
+        } catch (error) {
+            console.error('❌ Failed to load individual participant documents:', error);
+        }
+    }
+    
     // Fallback to localStorage - ALWAYS check even if Firebase has data but no participants
     if (!eventData || !eventData.participants || eventData.participants.length === 0) {
         console.log('📁 Trying localStorage fallback...');
@@ -207,7 +233,20 @@ function hasParticipantChanges(oldData, newData) {
     if (!oldData || !newData) return true;
     if (oldData.participants.length !== newData.participants.length) return true;
     
-    // Check for score or name changes
+    // Create sets of participant IDs for comparison
+    const oldIds = new Set(oldData.participants.map(p => p.id));
+    const newIds = new Set(newData.participants.map(p => p.id));
+    
+    // Check if any participants were added or removed
+    if (oldIds.size !== newIds.size) return true;
+    for (let id of oldIds) {
+        if (!newIds.has(id)) return true;
+    }
+    for (let id of newIds) {
+        if (!oldIds.has(id)) return true;
+    }
+    
+    // Check for score, name, or avatar changes
     for (let i = 0; i < oldData.participants.length; i++) {
         const oldParticipant = oldData.participants[i];
         const newParticipant = newData.participants.find(p => p.id === oldParticipant.id);
