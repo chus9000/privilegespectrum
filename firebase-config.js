@@ -4,11 +4,11 @@ const FIREBASE_BASE_URL = `https://firestore.googleapis.com/v1/projects/${FIREBA
 
 window.FirebaseAPI = {
     async saveEvent(eventId, eventData) {
-        // For new events, use PATCH to create/update the entire document
-        const response = await fetch(`${FIREBASE_BASE_URL}/events/${eventId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+        console.log('🔥 Firebase saveEvent called:', { eventId, participantCount: eventData.participants?.length || 0 });
+        
+        try {
+            // For new events, use PATCH to create/update the entire document
+            const requestBody = {
                 fields: {
                     title: { stringValue: eventData.title },
                     pin: { stringValue: eventData.pin },
@@ -29,9 +29,35 @@ window.FirebaseAPI = {
                     },
                     createdAt: { timestampValue: new Date().toISOString() }
                 }
-            })
-        });
-        return response.ok;
+            };
+            
+            console.log('🔥 Firebase request URL:', `${FIREBASE_BASE_URL}/events/${eventId}`);
+            console.log('🔥 Firebase request body:', JSON.stringify(requestBody, null, 2));
+            
+            const response = await fetch(`${FIREBASE_BASE_URL}/events/${eventId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+            
+            console.log('🔥 Firebase response status:', response.status, response.statusText);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Firebase saveEvent failed:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    errorBody: errorText
+                });
+            } else {
+                console.log('✅ Firebase saveEvent successful');
+            }
+            
+            return response.ok;
+        } catch (error) {
+            console.error('❌ Firebase saveEvent exception:', error);
+            return false;
+        }
     },
 
     async updateParticipant(eventId, participant, maxRetries = 5) {
@@ -142,22 +168,57 @@ window.FirebaseAPI = {
     },
 
     async loadEvent(eventId) {
-        const response = await fetch(`${FIREBASE_BASE_URL}/events/${eventId}`);
-        if (!response.ok) return null;
+        console.log('🔥 Firebase loadEvent called for:', eventId);
+        console.log('🔥 Firebase URL:', `${FIREBASE_BASE_URL}/events/${eventId}`);
         
-        const data = await response.json();
-        if (!data.fields) return null;
-        
-        return {
-            title: data.fields.title?.stringValue || '',
-            pin: data.fields.pin?.stringValue || '',
-            participants: data.fields.participants?.arrayValue?.values?.map(v => ({
-                id: v.mapValue.fields.id?.stringValue || '',
-                name: v.mapValue.fields.name?.stringValue || '',
-                avatar: v.mapValue.fields.avatar?.stringValue || '',
-                score: parseInt(v.mapValue.fields.score?.integerValue || '0'),
-                answers: JSON.parse(v.mapValue.fields.answers?.stringValue || '{}')
-            })) || []
-        };
+        try {
+            const response = await fetch(`${FIREBASE_BASE_URL}/events/${eventId}`);
+            console.log('🔥 Firebase loadEvent response:', response.status, response.statusText);
+            
+            if (!response.ok) {
+                if (response.status === 404) {
+                    console.log('⚠️ Event not found in Firebase (404)');
+                } else {
+                    const errorText = await response.text();
+                    console.error('❌ Firebase loadEvent failed:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        errorBody: errorText
+                    });
+                }
+                return null;
+            }
+            
+            const data = await response.json();
+            console.log('🔥 Firebase raw response data:', JSON.stringify(data, null, 2));
+            
+            if (!data.fields) {
+                console.error('❌ Firebase response missing fields property');
+                return null;
+            }
+            
+            const eventData = {
+                title: data.fields.title?.stringValue || '',
+                pin: data.fields.pin?.stringValue || '',
+                participants: data.fields.participants?.arrayValue?.values?.map(v => ({
+                    id: v.mapValue.fields.id?.stringValue || '',
+                    name: v.mapValue.fields.name?.stringValue || '',
+                    avatar: v.mapValue.fields.avatar?.stringValue || '',
+                    score: parseInt(v.mapValue.fields.score?.integerValue || '0'),
+                    answers: JSON.parse(v.mapValue.fields.answers?.stringValue || '{}')
+                })) || []
+            };
+            
+            console.log('✅ Firebase loadEvent successful:', {
+                title: eventData.title,
+                participantCount: eventData.participants.length,
+                participants: eventData.participants.map(p => ({ name: p.name, score: p.score }))
+            });
+            
+            return eventData;
+        } catch (error) {
+            console.error('❌ Firebase loadEvent exception:', error);
+            return null;
+        }
     }
 };

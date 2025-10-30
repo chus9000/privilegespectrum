@@ -195,20 +195,31 @@ function initializeProgress() {
 }
 
 async function updateParticipant() {
+    console.log('🔄 updateParticipant called for:', participant.name, 'Score:', participant.score);
+    console.log('🔄 Current eventData participants:', eventData.participants.length);
+    
     // Update local eventData first
     const existingIndex = eventData.participants.findIndex(p => p.id === participant.id);
     if (existingIndex >= 0) {
+        console.log('🔄 Updating existing participant at index:', existingIndex);
         eventData.participants[existingIndex] = participant;
     } else {
+        console.log('➕ Adding new participant to eventData');
         eventData.participants.push(participant);
     }
     
+    console.log('📊 Updated eventData participants count:', eventData.participants.length);
+    console.log('📊 All participants:', eventData.participants.map(p => ({ name: p.name, score: p.score })));
+    
     // Save to localStorage immediately for offline functionality
+    console.log('💾 Saving to localStorage...');
     localStorage.setItem(`event_${eventId}`, JSON.stringify(eventData));
     localStorage.setItem(`participant_${eventId}`, JSON.stringify(participant));
+    console.log('✅ Saved to localStorage');
     
     // Use the new updateParticipant method for Firebase to avoid race conditions
     try {
+        console.log('🔥 Attempting Firebase update...');
         const success = await window.FirebaseAPI.updateParticipant(eventId, participant);
         if (success) {
             console.log('✅ Participant updated in Firebase using atomic update');
