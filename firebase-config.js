@@ -1,9 +1,11 @@
-// Simple Firebase REST API - no caching issues
+// Simple Firebase REST API - no caching issues - Updated v2.0
 const FIREBASE_PROJECT_ID = 'privilegespectrum';
 const FIREBASE_BASE_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 
 // Alternative approach using Firebase's public REST API for GitHub Pages
 const FIREBASE_PUBLIC_BASE_URL = `https://${FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com`;
+
+console.log('🔥 Firebase Config v2.0 loaded - CORS-friendly method removed');
 
 window.FirebaseAPI = {
     // Real-time listener for event updates
