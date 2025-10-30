@@ -195,7 +195,7 @@ function initializeProgress() {
 }
 
 async function updateParticipant() {
-    // Use participant ID for finding existing participant instead of name
+    // Update local eventData first
     const existingIndex = eventData.participants.findIndex(p => p.id === participant.id);
     if (existingIndex >= 0) {
         eventData.participants[existingIndex] = participant;
@@ -203,14 +203,17 @@ async function updateParticipant() {
         eventData.participants.push(participant);
     }
     
-    // Save to both Firebase and localStorage
+    // Save to localStorage immediately for offline functionality
     localStorage.setItem(`event_${eventId}`, JSON.stringify(eventData));
     localStorage.setItem(`participant_${eventId}`, JSON.stringify(participant));
     
+    // Use the new updateParticipant method for Firebase to avoid race conditions
     try {
-        const success = await window.FirebaseAPI.saveEvent(eventId, eventData);
+        const success = await window.FirebaseAPI.updateParticipant(eventId, participant);
         if (success) {
-            console.log('✅ Participant updated in Firebase');
+            console.log('✅ Participant updated in Firebase using atomic update');
+        } else {
+            console.error('❌ Firebase participant update failed');
         }
     } catch (error) {
         console.error('❌ Firebase participant update failed:', error);
