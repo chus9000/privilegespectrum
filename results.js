@@ -11,99 +11,50 @@ let realTimeListener = null;
 async function loadEventData() {
     console.log('🔍 Loading event data for ID:', eventId);
     
-    // Try Firebase first
+    // Try Firebase first - this is the primary source for cross-device data
     try {
         console.log('🔥 Attempting Firebase load...');
         eventData = await window.FirebaseAPI.loadEvent(eventId);
-        if (eventData) {
+        if (eventData && eventData.participants && eventData.participants.length > 0) {
             console.log('✅ Results loaded from Firebase:', eventData.participants.length, 'participants');
             console.log('📊 Firebase event data:', JSON.stringify(eventData, null, 2));
             setupRealTimeUpdates();
+            console.log('📊 Proceeding to load results with Firebase data');
+            loadResults();
+            return; // Use Firebase data and exit - don't override with localStorage
         } else {
-            console.log('⚠️ Event not found in Firebase - received null/undefined');
+            console.log('⚠️ Event not found in Firebase or no participants - trying localStorage fallback');
         }
     } catch (error) {
         console.error('❌ Firebase load failed with error:', error);
-        console.error('❌ Error details:', {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
-        });
+        console.log('📁 Falling back to localStorage...');
     }
     
-    // Fallback to localStorage - ALWAYS check first for current participant
-    console.log('📁 Checking localStorage for current participant...');
+    // Only use localStorage as fallback if Firebase has no data
+    console.log('📁 Checking localStorage for fallback data...');
     const localStorageData = localStorage.getItem(`event_${eventId}`);
     console.log('📁 Raw localStorage data:', localStorageData);
     
     const localEventData = JSON.parse(localStorageData || 'null');
     if (localEventData && localEventData.participants && localEventData.participants.length > 0) {
-        console.log('✅ Results loaded from localStorage:', localEventData.participants.length, 'participants');
+        console.log('✅ Results loaded from localStorage fallback:', localEventData.participants.length, 'participants');
         console.log('📊 localStorage event data:', JSON.stringify(localEventData, null, 2));
-        eventData = localEventData; // Use localStorage data as primary source
+        eventData = localEventData;
         setupLocalStoragePolling();
-    } else {
-        console.log('📁 No participant data found in localStorage, trying individual documents...');
-        
-        // Try loading participants from individual documents if localStorage is empty
-        if (!eventData || !eventData.participants || eventData.participants.length === 0) {
-            console.log('🌐 Trying to load participants from individual documents...');
-            try {
-                const individualParticipants = await window.FirebaseAPI.loadParticipantsFromIndividualDocs(eventId);
-                if (individualParticipants && individualParticipants.length > 0) {
-                    console.log('✅ Results loaded from individual participant documents:', individualParticipants.length, 'participants');
-                    if (eventData) {
-                        eventData.participants = individualParticipants;
-                    } else {
-                        // Create minimal event data structure
-                        eventData = {
-                            title: 'Event Results',
-                            pin: '',
-                            participants: individualParticipants
-                        };
-                    }
-                    setupPolling(); // Use Firebase polling for individual docs
-                } else {
-                    console.log('⚠️ No participants found in individual documents either');
-                }
-            } catch (error) {
-                console.error('❌ Failed to load individual participant documents:', error);
-            }
-        }
-    }
-    
-    // Final check - if still no data
-    if (!eventData || !eventData.participants || eventData.participants.length === 0) {
-        console.log('📁 Trying localStorage fallback...');
-        const localStorageData = localStorage.getItem(`event_${eventId}`);
-        console.log('📁 Raw localStorage data:', localStorageData);
-        
-        const localEventData = JSON.parse(localStorageData || 'null');
-        if (localEventData && localEventData.participants && localEventData.participants.length > 0) {
-            console.log('✅ Results loaded from localStorage:', localEventData.participants.length, 'participants');
-            console.log('� localStorage event data:', JSON.stringify(localEventData, null, 2));
-            eventData = localEventData; // Use localStorage data instead
-            setupLocalStoragePolling();
-        } else {
-            console.log('❌ No participant data found in localStorage either');
-            console.log('📁 All localStorage keys:', Object.keys(localStorage));
-            console.log('📁 Event-specific keys:', Object.keys(localStorage).filter(key => key.includes(eventId)));
-        }
-    }
-    
-    if (!eventData) {
-        console.error('💥 CRITICAL: No event data found anywhere!');
-        console.log('🔍 Debug info:', {
-            eventId: eventId,
-            currentURL: window.location.href,
-            localStorage_keys: Object.keys(localStorage),
-            firebase_available: typeof window.FirebaseAPI !== 'undefined'
-        });
-        document.body.innerHTML = '<div class="container"><div class="card"><h1>Event not found</h1><p>Event ID: ' + eventId + '</p><p>Check console for debug information</p></div></div>';
-    } else {
-        console.log('� Proceeding to load results with event data');
+        console.log('📊 Proceeding to load results with localStorage data');
         loadResults();
+        return;
     }
+    
+    // Final fallback - no data found anywhere
+    console.error('💥 CRITICAL: No event data found anywhere!');
+    console.log('🔍 Debug info:', {
+        eventId: eventId,
+        currentURL: window.location.href,
+        localStorage_keys: Object.keys(localStorage),
+        firebase_available: typeof window.FirebaseAPI !== 'undefined'
+    });
+    document.body.innerHTML = '<div class="container"><div class="card"><h1>Event not found</h1><p>Event ID: ' + eventId + '</p><p>Check console for debug information</p></div></div>';
 }
 
 function setupRealTimeUpdates() {
