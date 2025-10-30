@@ -127,6 +127,16 @@ function setupPolling() {
     setInterval(async () => {
         try {
             const updatedData = await window.FirebaseAPI.loadEvent(eventId);
+            
+            // If main event document is empty, try individual documents
+            if (updatedData && (!updatedData.participants || updatedData.participants.length === 0)) {
+                console.log('🔄 Main event document empty, checking individual documents...');
+                const individualParticipants = await window.FirebaseAPI.loadParticipantsFromIndividualDocs(eventId);
+                if (individualParticipants && individualParticipants.length > 0) {
+                    updatedData.participants = individualParticipants;
+                }
+            }
+            
             if (updatedData && hasParticipantChanges(eventData, updatedData)) {
                 console.log('🆕 Participant changes detected via polling, updating results...');
                 const hadNewParticipants = hasNewParticipants(eventData, updatedData);
