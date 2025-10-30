@@ -137,15 +137,9 @@ window.FirebaseAPI = {
     },
 
     async updateParticipant(eventId, participant, maxRetries = 5) {
-        // First try the CORS-friendly approach using individual participant documents
-        try {
-            console.log(`🌐 Trying CORS-friendly approach for participant: ${participant.name}`);
-            return await this.updateParticipantCORSFriendly(eventId, participant);
-        } catch (error) {
-            console.log(`⚠️ CORS-friendly approach failed, falling back to original method:`, error.message);
-        }
-
-        // Fallback to original method (will likely fail on GitHub Pages due to CORS)
+        console.log(`🔄 updateParticipant called for: ${participant.name}, Score: ${participant.score}`);
+        
+        // Use the main Firebase REST API method
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 console.log(`🔄 Attempt ${attempt}/${maxRetries} to update participant: ${participant.name}`);
@@ -255,46 +249,6 @@ window.FirebaseAPI = {
         return false;
     },
 
-    // CORS-friendly approach: Use a simple JSON storage service
-    async updateParticipantCORSFriendly(eventId, participant) {
-        console.log(`🌐 Saving participant ${participant.name} to public JSON storage`);
-        
-        try {
-            // Use JSONBin.io or similar service that allows CORS
-            const participantData = {
-                eventId: eventId,
-                id: participant.id,
-                name: participant.name,
-                avatar: participant.avatar,
-                score: participant.score,
-                answers: participant.answers || {},
-                timestamp: new Date().toISOString()
-            };
-
-            // Try using a public pastebin-like service that supports CORS
-            const response = await fetch(`https://api.jsonbin.io/v3/b`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': '$2a$10$8K8VQz8VQz8VQz8VQz8VQOeKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK' // Public key
-                },
-                body: JSON.stringify({
-                    [`participant_${eventId}_${participant.id}`]: participantData
-                })
-            });
-
-            if (response.ok) {
-                console.log(`✅ Participant ${participant.name} saved to public storage`);
-                return true;
-            } else {
-                console.error(`❌ Failed to save to public storage: ${response.status}`);
-                return false;
-            }
-        } catch (error) {
-            console.error(`❌ Public storage approach failed:`, error);
-            throw error;
-        }
-    },
 
     // Load participants from individual documents
     async loadParticipantsFromIndividualDocs(eventId) {
