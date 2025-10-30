@@ -1,8 +1,9 @@
-// Firebase Realtime Database - CORS-friendly for GitHub Pages - v3.0
+// Firebase Realtime Database - CORS-friendly for GitHub Pages - v3.1 - CACHE BUST
 const FIREBASE_PROJECT_ID = 'privilegespectrum';
-const FIREBASE_RTDB_URL = `https://${FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com`;
+const FIREBASE_RTDB_URL = `https://${FIREBASE_PROJECT_ID}-default-rtdb.europe-west1.firebasedatabase.app/`;
 
-console.log('🔥 Firebase Config v3.0 loaded - Using Realtime Database for CORS compatibility');
+console.log('🔥🔥🔥 Firebase Config v3.1 loaded - Using Realtime Database for CORS compatibility 🔥🔥🔥');
+console.log('🚀 RTDB URL:', FIREBASE_RTDB_URL);
 
 window.FirebaseAPI = {
     // Real-time listener for event updates using Firebase Realtime Database
