@@ -87,6 +87,9 @@ window.FirebaseAPI = {
                     answers: JSON.parse(v.mapValue.fields.answers?.stringValue || '{}')
                 })) || [];
                 
+                console.log('🔍 Current participants in Firebase:', currentParticipants.length);
+                console.log('🔍 Current participants data:', currentParticipants.map(p => ({ name: p.name, score: p.score })));
+                
                 const updateTime = currentDoc.updateTime;
                 
                 // Find and update the participant, or add if new

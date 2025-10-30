@@ -31,19 +31,22 @@ async function loadEventData() {
         });
     }
     
-    // Fallback to localStorage
-    if (!eventData) {
+    // Fallback to localStorage - ALWAYS check even if Firebase has data but no participants
+    if (!eventData || !eventData.participants || eventData.participants.length === 0) {
         console.log('📁 Trying localStorage fallback...');
         const localStorageData = localStorage.getItem(`event_${eventId}`);
         console.log('📁 Raw localStorage data:', localStorageData);
         
-        eventData = JSON.parse(localStorageData || 'null');
-        if (eventData) {
-            console.log('✅ Results loaded from localStorage:', eventData.participants.length, 'participants');
-            console.log('📊 localStorage event data:', JSON.stringify(eventData, null, 2));
+        const localEventData = JSON.parse(localStorageData || 'null');
+        if (localEventData && localEventData.participants && localEventData.participants.length > 0) {
+            console.log('✅ Results loaded from localStorage:', localEventData.participants.length, 'participants');
+            console.log('📊 localStorage event data:', JSON.stringify(localEventData, null, 2));
+            eventData = localEventData; // Use localStorage data instead
             setupLocalStoragePolling();
         } else {
-            console.log('❌ No data found in localStorage either');
+            console.log('❌ No participant data found in localStorage either');
+            console.log('📁 All localStorage keys:', Object.keys(localStorage));
+            console.log('📁 Event-specific keys:', Object.keys(localStorage).filter(key => key.includes(eventId)));
         }
     }
     
