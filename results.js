@@ -31,33 +31,48 @@ async function loadEventData() {
         });
     }
     
-    // Try loading participants from individual documents if main event has no participants
-    if (!eventData || !eventData.participants || eventData.participants.length === 0) {
-        console.log('🌐 Trying to load participants from individual documents...');
-        try {
-            const individualParticipants = await window.FirebaseAPI.loadParticipantsFromIndividualDocs(eventId);
-            if (individualParticipants && individualParticipants.length > 0) {
-                console.log('✅ Results loaded from individual participant documents:', individualParticipants.length, 'participants');
-                if (eventData) {
-                    eventData.participants = individualParticipants;
+    // Fallback to localStorage - ALWAYS check first for current participant
+    console.log('📁 Checking localStorage for current participant...');
+    const localStorageData = localStorage.getItem(`event_${eventId}`);
+    console.log('📁 Raw localStorage data:', localStorageData);
+    
+    const localEventData = JSON.parse(localStorageData || 'null');
+    if (localEventData && localEventData.participants && localEventData.participants.length > 0) {
+        console.log('✅ Results loaded from localStorage:', localEventData.participants.length, 'participants');
+        console.log('📊 localStorage event data:', JSON.stringify(localEventData, null, 2));
+        eventData = localEventData; // Use localStorage data as primary source
+        setupLocalStoragePolling();
+    } else {
+        console.log('📁 No participant data found in localStorage, trying individual documents...');
+        
+        // Try loading participants from individual documents if localStorage is empty
+        if (!eventData || !eventData.participants || eventData.participants.length === 0) {
+            console.log('🌐 Trying to load participants from individual documents...');
+            try {
+                const individualParticipants = await window.FirebaseAPI.loadParticipantsFromIndividualDocs(eventId);
+                if (individualParticipants && individualParticipants.length > 0) {
+                    console.log('✅ Results loaded from individual participant documents:', individualParticipants.length, 'participants');
+                    if (eventData) {
+                        eventData.participants = individualParticipants;
+                    } else {
+                        // Create minimal event data structure
+                        eventData = {
+                            title: 'Event Results',
+                            pin: '',
+                            participants: individualParticipants
+                        };
+                    }
+                    setupPolling(); // Use Firebase polling for individual docs
                 } else {
-                    // Create minimal event data structure
-                    eventData = {
-                        title: 'Event Results',
-                        pin: '',
-                        participants: individualParticipants
-                    };
+                    console.log('⚠️ No participants found in individual documents either');
                 }
-                setupPolling(); // Use Firebase polling for individual docs
-            } else {
-                console.log('⚠️ No participants found in individual documents either');
+            } catch (error) {
+                console.error('❌ Failed to load individual participant documents:', error);
             }
-        } catch (error) {
-            console.error('❌ Failed to load individual participant documents:', error);
         }
     }
     
-    // Fallback to localStorage - ALWAYS check even if Firebase has data but no participants
+    // Final check - if still no data
     if (!eventData || !eventData.participants || eventData.participants.length === 0) {
         console.log('📁 Trying localStorage fallback...');
         const localStorageData = localStorage.getItem(`event_${eventId}`);
@@ -66,7 +81,7 @@ async function loadEventData() {
         const localEventData = JSON.parse(localStorageData || 'null');
         if (localEventData && localEventData.participants && localEventData.participants.length > 0) {
             console.log('✅ Results loaded from localStorage:', localEventData.participants.length, 'participants');
-            console.log('📊 localStorage event data:', JSON.stringify(localEventData, null, 2));
+            console.log('� localStorage event data:', JSON.stringify(localEventData, null, 2));
             eventData = localEventData; // Use localStorage data instead
             setupLocalStoragePolling();
         } else {
@@ -86,7 +101,7 @@ async function loadEventData() {
         });
         document.body.innerHTML = '<div class="container"><div class="card"><h1>Event not found</h1><p>Event ID: ' + eventId + '</p><p>Check console for debug information</p></div></div>';
     } else {
-        console.log('🚀 Proceeding to load results with event data');
+        console.log('� Proceeding to load results with event data');
         loadResults();
     }
 }

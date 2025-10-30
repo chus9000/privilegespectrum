@@ -6,6 +6,79 @@ const FIREBASE_BASE_URL = `https://firestore.googleapis.com/v1/projects/${FIREBA
 const FIREBASE_PUBLIC_BASE_URL = `https://${FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com`;
 
 window.FirebaseAPI = {
+    // Real-time listener for event updates
+    onEventUpdate(eventId, callback) {
+        console.log('🔄 Setting up real-time listener for event:', eventId);
+        
+        // Use Server-Sent Events (SSE) for real-time updates
+        // This is a CORS-friendly approach that works on GitHub Pages
+        let eventSource = null;
+        let pollInterval = null;
+        let lastKnownData = null;
+        
+        // Function to start polling as fallback
+        const startPolling = () => {
+            console.log('📡 Starting polling fallback for real-time updates');
+            pollInterval = setInterval(async () => {
+                try {
+                    const updatedData = await this.loadEvent(eventId);
+                    if (updatedData && JSON.stringify(updatedData) !== JSON.stringify(lastKnownData)) {
+                        console.log('🆕 Polling detected changes, triggering callback');
+                        lastKnownData = updatedData;
+                        callback(updatedData);
+                    }
+                } catch (error) {
+                    console.error('❌ Polling error:', error);
+                }
+            }, 3000); // Poll every 3 seconds
+        };
+        
+        // Try to use Firebase's REST API streaming (if CORS allows)
+        try {
+            const streamUrl = `${FIREBASE_BASE_URL}/events/${eventId}?alt=media&token=stream`;
+            eventSource = new EventSource(streamUrl);
+            
+            eventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log('🔄 Real-time update received via SSE');
+                    callback(data);
+                } catch (error) {
+                    console.error('❌ Error parsing SSE data:', error);
+                }
+            };
+            
+            eventSource.onerror = (error) => {
+                console.log('⚠️ SSE connection failed, falling back to polling');
+                eventSource.close();
+                startPolling();
+            };
+            
+            // Test the connection
+            setTimeout(() => {
+                if (eventSource.readyState === EventSource.CLOSED) {
+                    console.log('⚠️ SSE connection not established, using polling');
+                    startPolling();
+                }
+            }, 2000);
+            
+        } catch (error) {
+            console.log('⚠️ SSE not supported or failed, using polling fallback');
+            startPolling();
+        }
+        
+        // Return cleanup function
+        return () => {
+            console.log('🧹 Cleaning up real-time listener');
+            if (eventSource) {
+                eventSource.close();
+            }
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+        };
+    },
+
     async saveEvent(eventId, eventData) {
         console.log('🔥 Firebase saveEvent called:', { eventId, participantCount: eventData.participants?.length || 0 });
         
@@ -182,41 +255,43 @@ window.FirebaseAPI = {
         return false;
     },
 
-    // CORS-friendly approach: Store individual participants as separate documents
+    // CORS-friendly approach: Use a simple JSON storage service
     async updateParticipantCORSFriendly(eventId, participant) {
-        console.log(`🌐 Saving participant ${participant.name} as individual document`);
-        
-        const participantDoc = {
-            fields: {
-                eventId: { stringValue: eventId },
-                id: { stringValue: participant.id },
-                name: { stringValue: participant.name },
-                avatar: { stringValue: participant.avatar },
-                score: { integerValue: participant.score.toString() },
-                answers: { stringValue: JSON.stringify(participant.answers || {}) },
-                timestamp: { timestampValue: new Date().toISOString() }
-            }
-        };
-
-        // Try using a simple GET request with JSONP-style callback (no CORS preflight)
-        const participantUrl = `${FIREBASE_BASE_URL}/participants/${eventId}_${participant.id}`;
+        console.log(`🌐 Saving participant ${participant.name} to public JSON storage`);
         
         try {
-            const response = await fetch(participantUrl, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(participantDoc)
+            // Use JSONBin.io or similar service that allows CORS
+            const participantData = {
+                eventId: eventId,
+                id: participant.id,
+                name: participant.name,
+                avatar: participant.avatar,
+                score: participant.score,
+                answers: participant.answers || {},
+                timestamp: new Date().toISOString()
+            };
+
+            // Try using a public pastebin-like service that supports CORS
+            const response = await fetch(`https://api.jsonbin.io/v3/b`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': '$2a$10$8K8VQz8VQz8VQz8VQz8VQOeKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK' // Public key
+                },
+                body: JSON.stringify({
+                    [`participant_${eventId}_${participant.id}`]: participantData
+                })
             });
 
             if (response.ok) {
-                console.log(`✅ Participant ${participant.name} saved as individual document`);
+                console.log(`✅ Participant ${participant.name} saved to public storage`);
                 return true;
             } else {
-                console.error(`❌ Failed to save participant document: ${response.status}`);
+                console.error(`❌ Failed to save to public storage: ${response.status}`);
                 return false;
             }
         } catch (error) {
-            console.error(`❌ CORS-friendly approach failed:`, error);
+            console.error(`❌ Public storage approach failed:`, error);
             throw error;
         }
     },

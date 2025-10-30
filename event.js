@@ -149,7 +149,15 @@ function selectAnswer(questionIndex, answer, element) {
     participant.score = 0;
     questions.forEach((question, index) => {
         if (participant.answers[index] === 1) {
-            participant.score += question.value;
+            // "Yes" answer: add the question value if positive, or 0 if negative
+            if (question.value > 0) {
+                participant.score += question.value;
+            }
+        } else if (participant.answers[index] === 0) {
+            // "No" answer: add the question value if negative, or 0 if positive
+            if (question.value < 0) {
+                participant.score += Math.abs(question.value);
+            }
         }
     });
     
