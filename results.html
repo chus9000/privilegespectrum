@@ -22,6 +22,7 @@
             
             <div class="header-title">
                 <h1 id="eventTitle"></h1>
+                <button id="showDistributionBtn" class="distribution-btn">Show Answers Distribution</button>
             </div>
             
             <div class="header-search">
@@ -86,6 +87,24 @@
         </div>
     </div>
 
+    <!-- Answer Distribution Modal -->
+    <div id="distributionModal" class="modal" style="display: none;">
+        <div class="modal-content distribution-modal">
+            <div class="modal-header">
+                <h2>Answer Distribution</h2>
+                <span class="close-btn" id="closeDistributionModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="distribution-summary">
+                    <p>Based on <span id="totalParticipants">0</span> participants</p>
+                </div>
+                <div id="distributionList" class="distribution-list">
+                    <!-- Questions and percentages will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer">
         <div class="footer-content">
             <div>Made with love © 2025 <a href="https://jesusmartin.eu" target="_blank">jesusmartin.eu</a></div>
@@ -94,6 +113,7 @@
     </footer>
 
     <script src="firebase-config.js"></script>
+    <script src="questions.js"></script>
     <script src="results.js"></script>
 </body>
 </html>

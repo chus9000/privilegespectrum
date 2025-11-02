@@ -52,6 +52,7 @@ window.FirebaseAPI = {
                 title: eventData.title,
                 pin: eventData.pin,
                 participants: eventData.participants || [],
+                disabledQuestions: eventData.disabledQuestions || [],
                 createdAt: new Date().toISOString()
             };
             
@@ -171,7 +172,8 @@ window.FirebaseAPI = {
             const eventData = {
                 title: data.title || '',
                 pin: data.pin || '',
-                participants: data.participants || []
+                participants: data.participants || [],
+                disabledQuestions: data.disabledQuestions || []
             };
             
             console.log('✅ Firebase RTDB loadEvent successful:', {

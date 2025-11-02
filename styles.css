@@ -434,6 +434,56 @@ button:active {
     padding: 24px 32px;
 }
 
+.modal-footer {
+    padding: 16px 32px 24px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-radius: 0 0 16px 16px;
+}
+
+.cancel-btn {
+    background: #f8fafc;
+    color: #475569;
+    border: 2px solid #e2e8f0;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: none;
+}
+
+.cancel-btn:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.save-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px 0 rgba(102, 126, 234, 0.3);
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px 0 rgba(102, 126, 234, 0.4);
+}
+
 .question-item {
     display: flex;
     justify-content: space-between;
@@ -905,6 +955,26 @@ button:active {
     color: #1e293b;
     font-size: 1.5rem;
     font-weight: 600;
+}
+
+.distribution-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.distribution-btn:hover {
+    background: #5a67d8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .header-search {
@@ -1468,6 +1538,131 @@ body:has(.search-container[style*="display: block"]) .participant-marker:not(.fi
     font-size: 1.1rem;
 }
 
+/* Distribution Modal Styles */
+.distribution-modal {
+    max-width: 800px;
+}
+
+.distribution-summary {
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.distribution-summary p {
+    margin: 0;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.distribution-summary span {
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.distribution-list {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.distribution-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.distribution-item:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.distribution-question {
+    flex: 1;
+    margin-right: 20px;
+    color: #334155;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.distribution-stats {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    min-width: 200px;
+}
+
+.stat-group {
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 8px;
+    min-width: 80px;
+}
+
+.stat-group.yes-stat {
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+}
+
+.stat-group.no-stat {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+}
+
+.yes-stat .stat-label {
+    color: #166534;
+}
+
+.no-stat .stat-label {
+    color: #991b1b;
+}
+
+.stat-percentage {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.yes-stat .stat-percentage {
+    color: #15803d;
+}
+
+.no-stat .stat-percentage {
+    color: #dc2626;
+}
+
+.distribution-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.distribution-list::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.distribution-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.distribution-list::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
 /* Mobile responsive modal */
 @media (max-width: 768px) {
     .modal-content {
@@ -1513,5 +1708,25 @@ body:has(.search-container[style*="display: block"]) .participant-marker:not(.fi
     .stat-value {
         font-size: 1rem;
         align-self: flex-end;
+    }
+    
+    .distribution-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .distribution-question {
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+    
+    .distribution-stats {
+        justify-content: center;
+        min-width: auto;
+    }
+    
+    .stat-group {
+        min-width: 70px;
     }
 }

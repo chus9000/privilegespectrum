@@ -26,7 +26,7 @@
                     <input type="text" id="eventTitle" placeholder="Event Title" required>
                     <div class="form-bottom">
                         <div class="review-link">
-                            <a href="#" id="reviewQuestions">Review the questions</a>
+                            <a href="#" id="reviewQuestions">Review the questions <span id="questionCount">(35)</span></a>
                         </div>
                         <button type="submit">Create Event</button>
                     </div>
@@ -65,7 +65,6 @@
 
     <!-- Questions Review Modal -->
     <div id="questionsModal" class="modal" style="display: none;">
-        <span class="close-outside" id="closeModal">&times;</span>
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Review Questions</h2>
@@ -75,6 +74,10 @@
             </div>
             <div class="modal-body">
                 <div id="questionsList"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelQuestions" class="cancel-btn">Cancel</button>
+                <button id="saveQuestions" class="save-btn">Save</button>
             </div>
         </div>
     </div>

@@ -76,6 +76,29 @@ function setupPinEntry() {
 function loadEvent() {
     document.getElementById('eventTitle').textContent = eventData.title;
     
+    // Use disabled questions from event data if available, otherwise fall back to current localStorage
+    let disabledQuestions = [];
+    if (eventData.disabledQuestions && Array.isArray(eventData.disabledQuestions)) {
+        // Use the disabled questions that were saved with this specific event
+        disabledQuestions = eventData.disabledQuestions;
+        console.log('📋 Using disabled questions from event data:', disabledQuestions);
+    } else {
+        // Fallback for older events that don't have disabled questions stored
+        disabledQuestions = JSON.parse(localStorage.getItem('disabledQuestions') || '[]');
+        eventData.disabledQuestions = disabledQuestions;
+        console.log('📋 Fallback: Using current disabled questions for older event:', disabledQuestions);
+        
+        // Save updated event data
+        localStorage.setItem(`event_${eventId}`, JSON.stringify(eventData));
+        
+        // Also try to save to Firebase if available
+        if (window.FirebaseAPI && window.FirebaseAPI.saveEvent) {
+            window.FirebaseAPI.saveEvent(eventId, eventData).catch(error => {
+                console.warn('Failed to save disabled questions to Firebase:', error);
+            });
+        }
+    }
+    
     // Use existing participant or generate new one
     if (!participant) {
         participant = generateParticipant();
@@ -102,7 +125,6 @@ function loadEvent() {
     const questionsContainer = document.getElementById('questionsContainer');
     
     // Filter out disabled questions
-    const disabledQuestions = JSON.parse(localStorage.getItem('disabledQuestions') || '[]');
     const enabledQuestions = questions.filter((_, index) => !disabledQuestions.includes(index));
     
     enabledQuestions.forEach((question, displayIndex) => {
@@ -167,7 +189,8 @@ function selectAnswer(questionIndex, answer, element) {
 
 function updateProgress() {
     const answered = Object.keys(participant.answers || {}).length;
-    const disabledQuestions = JSON.parse(localStorage.getItem('disabledQuestions') || '[]');
+    // Use the disabled questions from this specific event, not current localStorage
+    const disabledQuestions = eventData.disabledQuestions || [];
     const total = questions.length - disabledQuestions.length;
     const percentage = (answered / total) * 100;
     

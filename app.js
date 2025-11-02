@@ -4,6 +4,7 @@ let currentEventPin = '';
 document.addEventListener('DOMContentLoaded', () => {
     loadArchive();
     showCookieBanner();
+    updateQuestionCounter();
 });
 
 document.getElementById('eventForm').addEventListener('submit', async (e) => {
@@ -12,7 +13,17 @@ document.getElementById('eventForm').addEventListener('submit', async (e) => {
     const title = document.getElementById('eventTitle').value;
     const eventId = generateId();
     const eventPin = generatePin();
-    const eventData = { title, pin: eventPin, participants: [] };
+    
+    // Include disabled questions in event data
+    const disabledQuestions = JSON.parse(localStorage.getItem('disabledQuestions') || '[]');
+    const eventData = { 
+        title, 
+        pin: eventPin, 
+        participants: [],
+        disabledQuestions: disabledQuestions
+    };
+    
+    console.log('📋 Creating event with disabled questions:', disabledQuestions);
     
     // Save to Firebase and localStorage as backup
     await saveEventToFirebase(eventId, eventData);
@@ -69,16 +80,15 @@ document.getElementById('reviewQuestions').addEventListener('click', (e) => {
     showQuestionsModal();
 });
 
-document.getElementById('closeModal').addEventListener('click', () => {
+document.getElementById('cancelQuestions').addEventListener('click', () => {
     document.getElementById('questionsModal').style.display = 'none';
 });
 
-window.addEventListener('click', (e) => {
-    const modal = document.getElementById('questionsModal');
-    if (e.target === modal) {
-        modal.style.display = 'none';
-    }
+document.getElementById('saveQuestions').addEventListener('click', () => {
+    document.getElementById('questionsModal').style.display = 'none';
+    updateQuestionCounter();
 });
+
 
 function showQuestionsModal() {
     const modal = document.getElementById('questionsModal');
@@ -211,3 +221,14 @@ document.getElementById('acceptCookies').addEventListener('click', () => {
     localStorage.setItem('cookieConsent', 'accepted');
     document.getElementById('cookieBanner').style.display = 'none';
 });
+
+function updateQuestionCounter() {
+    const disabledQuestions = JSON.parse(localStorage.getItem('disabledQuestions') || '[]');
+    const totalQuestions = questions.length;
+    const enabledQuestions = totalQuestions - disabledQuestions.length;
+    
+    const counterElement = document.getElementById('questionCount');
+    if (counterElement) {
+        counterElement.textContent = `(${enabledQuestions})`;
+    }
+}
