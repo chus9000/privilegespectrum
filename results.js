@@ -919,17 +919,14 @@ function calculateAnswerDistribution() {
     let disabledQuestions = [];
     
     // First, try to get disabled questions from event data if available
-    if (eventData && eventData.disabledQuestions) {
+    if (eventData && eventData.disabledQuestions && Array.isArray(eventData.disabledQuestions)) {
         disabledQuestions = eventData.disabledQuestions;
         console.log('📋 Using disabled questions from event data for distribution:', disabledQuestions);
     } else {
-        // Fallback: try localStorage (this should contain the disabled questions from event creation)
-        const rawDisabledQuestions = localStorage.getItem('disabledQuestions');
-        disabledQuestions = JSON.parse(rawDisabledQuestions || '[]');
-        console.log('📋 Using disabled questions from localStorage for distribution:', disabledQuestions);
+        // For events without stored disabled questions, infer from participant answers
+        console.log('📋 Event has no stored disabled questions, inferring from participant answers...');
         
-        // If localStorage is empty, try to infer from participant answers as last resort
-        if (disabledQuestions.length === 0 && eventData && eventData.participants && eventData.participants.length > 0) {
+        if (eventData && eventData.participants && eventData.participants.length > 0) {
             // Get all question indices that have been answered by any participant
             const answeredQuestionIndices = new Set();
             eventData.participants.forEach(participant => {
@@ -949,6 +946,9 @@ function calculateAnswerDistribution() {
                 }
             });
             
+            console.log('📋 All answered question indices:', Array.from(answeredQuestionIndices).sort((a, b) => a - b));
+            console.log('📋 Total questions in questions.js:', questions.length);
+            
             // Assume questions not answered by anyone were disabled
             disabledQuestions = [];
             for (let i = 0; i < questions.length; i++) {
@@ -957,6 +957,10 @@ function calculateAnswerDistribution() {
                 }
             }
             console.log('📋 Inferred disabled questions from participant answers for distribution:', disabledQuestions);
+        } else {
+            // Last resort: assume all questions were enabled for events with no participants
+            console.log('📋 No participant data available, assuming all questions were enabled');
+            disabledQuestions = [];
         }
     }
     
