@@ -117,6 +117,12 @@ function loadEvent() {
             participant.id = generateUniqueId();
             localStorage.setItem(`participant_${eventId}`, JSON.stringify(participant));
         }
+        
+        // For existing participants, ensure they have a timestamp (backward compatibility)
+        if (!participant.createdAt) {
+            participant.createdAt = new Date().toISOString();
+            localStorage.setItem(`participant_${eventId}`, JSON.stringify(participant));
+        }
     }
     
     document.getElementById('participantName').textContent = participant.name;
@@ -171,16 +177,10 @@ function selectAnswer(questionIndex, answer, element) {
     participant.score = 0;
     questions.forEach((question, index) => {
         if (participant.answers[index] === 1) {
-            // "Yes" answer: add the question value if positive, or 0 if negative
-            if (question.value > 0) {
-                participant.score += question.value;
-            }
-        } else if (participant.answers[index] === 0) {
-            // "No" answer: add the question value if negative, or 0 if positive
-            if (question.value < 0) {
-                participant.score += Math.abs(question.value);
-            }
+            // "Yes" answer: add the question value (positive or negative)
+            participant.score += question.value;
         }
+        // "No" answer: add nothing (0 points)
     });
     
     updateProgress();
@@ -263,9 +263,12 @@ async function updateParticipant() {
 }
 
 function generateParticipant() {
-    const adjectives = ['Happy', 'Clever', 'Brave', 'Gentle', 'Swift', 'Bright', 'Calm', 'Bold', 'Kind', 'Wise'];
-    const nouns = ['Tiger', 'Eagle', 'Wolf', 'Bear', 'Fox', 'Lion', 'Owl', 'Deer', 'Hawk', 'Panda'];
-    const avatars = ['🐱', '🐶', '🦊', '🐻', '🐼', '🦁', '🐯', '🐸', '🐵', '🦄'];
+    const adjectives = ['Happy', 'Clever', 'Brave', 'Gentle', 'Swift', 'Bright', 'Calm', 'Bold', 'Kind', 'Wise', 'Fierce', 'Loyal', 'Noble', 'Agile', 'Strong', 'Silent', 'Wild', 'Proud', 'Free', 'Sharp',
+    'Mighty', 'Peaceful', 'Graceful', 'Steady', 'Nimble', 'Daring', 'Keen', 'Pure', 'Valiant', 'Smooth'];
+    const nouns = ['Tiger', 'Eagle', 'Wolf', 'Bear', 'Fox', 'Lion', 'Owl', 'Deer', 'Hawk', 'Panda', 'Falcon', 'Dolphin', 'Jaguar', 'Lynx', 'Raven', 'Cougar', 'Dragon', 'Phoenix', 'Leopard', 'Cobra',
+    'Panther', 'Cheetah', 'Falcon', 'Elephant', 'Whale', 'Gazelle', 'Griffin', 'Stallion', 'Serpent', 'Condor'];
+    const avatars = ['🐱', '🐶', '🦊', '🐻', '🐼', '🦁', '🐯', '🐸', '🐵', '🦄', '🐨', '🐰', '🦊', '🐮', '🐷', '🐔', '🦅', '🦉', '🦋', '🐢',
+    '🐘', '🦒', '🦓', '🦘', '🦬', '🦃', '🦚', '🦩', '🐧', '🐬'];
     
     const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
     const noun = nouns[Math.floor(Math.random() * nouns.length)];
@@ -275,7 +278,8 @@ function generateParticipant() {
         name: `${adjective} ${noun}`,
         avatar: avatars[Math.floor(Math.random() * avatars.length)],
         score: 0,
-        answers: {}
+        answers: {},
+        createdAt: new Date().toISOString()
     };
 }
 

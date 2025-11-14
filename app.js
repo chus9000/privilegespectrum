@@ -101,13 +101,16 @@ function showQuestionsModal() {
         const isDisabled = disabledQuestions.includes(index);
         return `
             <div class="question-item ${isDisabled ? 'disabled' : ''}">
-                <div class="question-text">${question.text}</div>
+                <div class="">${question.text}</div>
                 <button class="toggle-btn" onclick="toggleQuestion(${index})">
                     ${isDisabled ? 'Add' : 'Remove'}
                 </button>
             </div>
         `;
     }).join('');
+    
+    // Update the counter in the modal
+    updateModalQuestionCounter();
     
     modal.style.display = 'block';
 }
@@ -230,5 +233,16 @@ function updateQuestionCounter() {
     const counterElement = document.getElementById('questionCount');
     if (counterElement) {
         counterElement.textContent = `(${enabledQuestions})`;
+    }
+}
+
+function updateModalQuestionCounter() {
+    const disabledQuestions = JSON.parse(localStorage.getItem('disabledQuestions') || '[]');
+    const totalQuestions = questions.length;
+    const enabledQuestions = totalQuestions - disabledQuestions.length;
+    
+    const modalCounterElement = document.getElementById('enabledQuestionsCounter');
+    if (modalCounterElement) {
+        modalCounterElement.textContent = `${enabledQuestions} questions enabled`;
     }
 }

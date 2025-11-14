@@ -24,12 +24,11 @@
                 <h1>Create New Event</h1>
                 <form id="eventForm">
                     <input type="text" id="eventTitle" placeholder="Event Title" required>
-                    <div class="form-bottom">
-                        <div class="review-link">
-                            <a href="#" id="reviewQuestions">Review the questions <span id="questionCount">(35)</span></a>
-                        </div>
-                        <button type="submit">Create Event</button>
-                    </div>
+                    <button type="button" class="review-questions-dropdown" id="reviewQuestions">
+                        <span class="dropdown-text">Review the questions <span id="questionCount">(35)</span></span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <button type="submit">Create Event</button>
                 </form>
             </div>
             
@@ -76,8 +75,13 @@
                 <div id="questionsList"></div>
             </div>
             <div class="modal-footer">
-                <button id="cancelQuestions" class="cancel-btn">Cancel</button>
-                <button id="saveQuestions" class="save-btn">Save</button>
+                <div class="enabled-counter">
+                    <span id="enabledQuestionsCounter">35 questions enabled</span>
+                </div>
+                <div class="modal-buttons">
+                    <button id="cancelQuestions" class="cancel-btn">Cancel</button>
+                    <button id="saveQuestions" class="save-btn">Save</button>
+                </div>
             </div>
         </div>
     </div>

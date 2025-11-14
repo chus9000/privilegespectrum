@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detailed Results</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
+    <link rel="manifest" href="./site.webmanifest">
+</head>
+<body class="results-page">
+    <div class="detailed-results-layout">
+        <div class="results-header-new">
+            <div class="header-logo">
+                <div class="logo-compact">
+                    <span class="logo-text">Privilege</span>
+                    <span class="logo-text">Spectrum</span>
+                </div>
+            </div>
+            
+            <div class="header-title">
+                <h1 id="eventTitle">Detailed Results</h1>
+                <button id="backToResults" class="distribution-btn">← Back to Results</button>
+            </div>
+            
+            <div class="header-search">
+                <button class="search-toggle" id="searchToggle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </button>
+                <div class="search-container" id="searchContainer" style="display: none;">
+                    <input type="text" id="searchInput" placeholder="Search participants..." class="search-input">
+                    <div class="search-results-count" id="searchCount"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="detailed-results-content">
+            <div class="results-summary" id="resultsSummary">
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Participants</span>
+                        <span class="stat-value" id="totalParticipants">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Questions Answered</span>
+                        <span class="stat-value" id="totalQuestions">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Average Score</span>
+                        <span class="stat-value" id="averageScore">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-scroll">
+                    <table class="detailed-results-table" id="detailedTable">
+                        <thead>
+                            <tr id="tableHeader">
+                                <th class="sticky-col row-number-col">#</th>
+                                <th class="sticky-col avatar-col">Avatar</th>
+                                <th class="sticky-col name-col">Name</th>
+                                <th class="sticky-col score-col">Score</th>
+                                <th class="sticky-col positive-sum-col">Positives</th>
+                                <th class="sticky-col negative-sum-col">Negatives</th>
+                                <!-- Question columns will be added dynamically -->
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Participant rows will be added dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="table-actions">
+                <button id="downloadCSV" class="download-btn">📥 Download CSV</button>
+            </div>
+            
+            <div class="loading-state" id="loadingState">
+                <div class="loading-spinner"></div>
+                <p>Loading detailed results...</p>
+            </div>
+            
+            <div class="error-state" id="errorState" style="display: none;">
+                <div class="error-icon">⚠️</div>
+                <h3>No Results Found</h3>
+                <p>Event not found or no participants have completed this event yet.</p>
+                <a href="index.html" class="back-btn">← Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div>Made with love © 2025 <a href="https://jesusmartin.eu" target="_blank">jesusmartin.eu</a></div>
+            <div>Any feedback? reach out to <a href="mailto:hi@jesusmartin.eu">hi@jesusmartin.eu</a> | <a href="privacy.html">Privacy</a> | <a href="terms.html">Terms</a></div>
+        </div>
+    </footer>
+
+    <script src="firebase-config.js"></script>
+    <script src="questions.js"></script>
+    <script src="detailed-results.js"></script>
+</body>
+</html>

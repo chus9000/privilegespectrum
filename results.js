@@ -611,6 +611,9 @@ function loadResults() {
     
     // Update search results count
     updateSearchCount();
+    
+    // Show current participant's modal automatically
+    showCurrentParticipantModal();
 }
 
 function renderParticipants() {
@@ -883,172 +886,54 @@ function closeModal() {
     document.getElementById('participantModal').style.display = 'none';
 }
 
-// Distribution Modal Functions
-function showDistributionModal() {
-    if (!eventData || !eventData.participants || eventData.participants.length === 0) {
-        console.error('No participant data available for distribution analysis');
+// Navigation function for detailed results
+function showDetailedResults() {
+    if (!eventId) {
+        console.error('No event ID available for navigation');
         return;
     }
     
-    // Update total participants count
-    document.getElementById('totalParticipants').textContent = eventData.participants.length;
-    
-    // Calculate and display distribution data
-    const distributionData = calculateAnswerDistribution();
-    renderDistributionList(distributionData);
-    
-    // Show the modal
-    document.getElementById('distributionModal').style.display = 'block';
+    // Navigate to detailed results page
+    window.location.href = `detailed-results.html?id=${eventId}`;
 }
 
-function closeDistributionModal() {
-    document.getElementById('distributionModal').style.display = 'none';
-}
-
-function calculateAnswerDistribution() {
-    // Load questions from the global questions array
-    if (typeof questions === 'undefined') {
-        console.error('Questions array not found. Make sure questions.js is loaded.');
-        return [];
+// Function to automatically show current participant's modal
+function showCurrentParticipantModal() {
+    if (!eventId) {
+        console.log('❌ No event ID available, cannot show current participant modal');
+        return;
     }
     
-    const totalParticipants = eventData.participants.length;
-    const distributionData = [];
+    // Get current participant data from localStorage
+    const currentParticipantData = localStorage.getItem(`participant_${eventId}`);
+    if (!currentParticipantData) {
+        console.log('❌ No current participant data found in localStorage');
+        return;
+    }
     
-    // Get disabled questions for this event
-    let disabledQuestions = [];
-    
-    // First, try to get disabled questions from event data if available
-    if (eventData && eventData.disabledQuestions && Array.isArray(eventData.disabledQuestions)) {
-        disabledQuestions = eventData.disabledQuestions;
-        console.log('📋 Using disabled questions from event data for distribution:', disabledQuestions);
-    } else {
-        // For events without stored disabled questions, infer from participant answers
-        console.log('📋 Event has no stored disabled questions, inferring from participant answers...');
-        
-        if (eventData && eventData.participants && eventData.participants.length > 0) {
-            // Get all question indices that have been answered by any participant
-            const answeredQuestionIndices = new Set();
-            eventData.participants.forEach(participant => {
-                if (participant.answers) {
-                    // Handle both object format {16: 1} and array format [null, null, ..., 1, 0, ...]
-                    if (Array.isArray(participant.answers)) {
-                        participant.answers.forEach((answer, index) => {
-                            if (answer !== null && answer !== undefined) {
-                                answeredQuestionIndices.add(index);
-                            }
-                        });
-                    } else {
-                        Object.keys(participant.answers).forEach(index => {
-                            answeredQuestionIndices.add(parseInt(index));
-                        });
-                    }
-                }
-            });
-            
-            console.log('📋 All answered question indices:', Array.from(answeredQuestionIndices).sort((a, b) => a - b));
-            console.log('📋 Total questions in questions.js:', questions.length);
-            
-            // Assume questions not answered by anyone were disabled
-            disabledQuestions = [];
-            for (let i = 0; i < questions.length; i++) {
-                if (!answeredQuestionIndices.has(i)) {
-                    disabledQuestions.push(i);
-                }
-            }
-            console.log('📋 Inferred disabled questions from participant answers for distribution:', disabledQuestions);
-        } else {
-            // Last resort: assume all questions were enabled for events with no participants
-            console.log('📋 No participant data available, assuming all questions were enabled');
-            disabledQuestions = [];
+    try {
+        const participant = JSON.parse(currentParticipantData);
+        if (!participant || !participant.id) {
+            console.log('❌ Invalid participant data or missing ID');
+            return;
         }
+        
+        console.log('✅ Found current participant:', participant.name, 'with ID:', participant.id);
+        
+        // Check if this participant exists in the results
+        const foundParticipant = allParticipants.find(p => p.id === participant.id);
+        if (!foundParticipant) {
+            console.log('❌ Current participant not found in results');
+            return;
+        }
+        
+        // Show the modal for the current participant
+        console.log('🎯 Automatically showing modal for current participant:', foundParticipant.name);
+        showParticipantModal(participant.id);
+        
+    } catch (error) {
+        console.error('❌ Error parsing current participant data:', error);
     }
-    
-    // Filter out disabled questions to get only enabled questions for this event
-    const enabledQuestions = questions.filter((_, index) => !disabledQuestions.includes(index));
-    console.log(`📊 Distribution will show ${enabledQuestions.length} out of ${questions.length} total questions`);
-    
-    // For each ENABLED question, calculate the percentage of Yes/No answers
-    enabledQuestions.forEach((question) => {
-        const questionIndex = questions.indexOf(question); // Get original index for answer lookup
-        let yesCount = 0;
-        let noCount = 0;
-        
-        // Count answers for this question across all participants
-        eventData.participants.forEach(participant => {
-            if (participant.answers && participant.answers[questionIndex] !== undefined) {
-                const answer = participant.answers[questionIndex];
-                
-                // Determine if the answer contributes to privilege (positive value) or not
-                // Questions with positive values: answering "Yes" increases privilege
-                // Questions with negative values: answering "Yes" decreases privilege
-                if (question.value > 0) {
-                    // For positive value questions, "Yes" = privilege, "No" = no privilege
-                    if (answer === true) {
-                        yesCount++;
-                    } else {
-                        noCount++;
-                    }
-                } else {
-                    // For negative value questions, "Yes" = disadvantage, "No" = privilege
-                    // But we still count the actual Yes/No responses
-                    if (answer === true) {
-                        yesCount++;
-                    } else {
-                        noCount++;
-                    }
-                }
-            }
-        });
-        
-        // Calculate percentages
-        const yesPercentage = totalParticipants > 0 ? Math.round((yesCount / totalParticipants) * 100) : 0;
-        const noPercentage = totalParticipants > 0 ? Math.round((noCount / totalParticipants) * 100) : 0;
-        
-        distributionData.push({
-            question: question.text,
-            questionValue: question.value,
-            yesCount,
-            noCount,
-            yesPercentage,
-            noPercentage,
-            totalResponses: yesCount + noCount
-        });
-    });
-    
-    return distributionData;
-}
-
-function renderDistributionList(distributionData) {
-    const distributionList = document.getElementById('distributionList');
-    if (!distributionList) return;
-    
-    // Clear existing content
-    distributionList.innerHTML = '';
-    
-    // Create distribution items
-    distributionData.forEach((item, index) => {
-        const distributionItem = document.createElement('div');
-        distributionItem.className = 'distribution-item';
-        
-        distributionItem.innerHTML = `
-            <div class="distribution-question">
-                ${item.question}
-            </div>
-            <div class="distribution-stats">
-                <div class="stat-group yes-stat">
-                    <div class="stat-label">Yes</div>
-                    <div class="stat-percentage">${item.yesPercentage}%</div>
-                </div>
-                <div class="stat-group no-stat">
-                    <div class="stat-label">No</div>
-                    <div class="stat-percentage">${item.noPercentage}%</div>
-                </div>
-            </div>
-        `;
-        
-        distributionList.appendChild(distributionItem);
-    });
 }
 
 // Set up modal event listeners when DOM is loaded
@@ -1069,31 +954,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Distribution modal event listeners
-    const showDistributionBtn = document.getElementById('showDistributionBtn');
-    if (showDistributionBtn) {
-        showDistributionBtn.addEventListener('click', showDistributionModal);
-    }
-    
-    const closeDistributionBtn = document.getElementById('closeDistributionModal');
-    if (closeDistributionBtn) {
-        closeDistributionBtn.addEventListener('click', closeDistributionModal);
-    }
-    
-    const distributionModal = document.getElementById('distributionModal');
-    if (distributionModal) {
-        distributionModal.addEventListener('click', (e) => {
-            if (e.target === distributionModal) {
-                closeDistributionModal();
-            }
-        });
+    // Detailed results button event listener
+    const showDetailedResultsBtn = document.getElementById('showDetailedResultsBtn');
+    if (showDetailedResultsBtn) {
+        showDetailedResultsBtn.addEventListener('click', showDetailedResults);
     }
     
     // Close modal with Escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeModal();
-            closeDistributionModal();
         }
     });
 });
